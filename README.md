@@ -16,13 +16,16 @@ the chain research and the running engineering log.
 
 ## Status
 
-Contracts implemented and tested. Not yet deployed. Frontend not yet started.
+Contracts implemented and tested. Interface built and tested. Not yet deployed to a public
+network.
 
 | | |
 |---|---|
-| Tests | 44 passing (18 registry, 23 vault, 3 invariants) |
+| Contract tests | 66 passing (registry, vault, profiles, lens, invariants) |
 | Invariant coverage | 8,192 randomized calls per invariant, including verification churn |
 | Contract sizes | Registry 10,242 B · Vault 8,900 B (EIP-170 limit 24,576 B) |
+| Interface tests | 49 unit · 12 integration against a live chain · 58 browser checks |
+| Read path | `eth_call` only — asserted by test, never `eth_getLogs` |
 
 ## The two contracts
 
@@ -70,6 +73,30 @@ forge test
 forge test --match-contract VaultSolvencyInvariantTest -vvv   # solvency invariants
 ```
 
+The interface, against a local chain seeded with a full demo:
+
+```bash
+cd web
+npm install
+npm run anvil       # terminal 1 — local node
+npm run devchain    # terminal 2 — deploys everything and seeds two verified schools,
+                    #              a paid-out balance, an expired one, pending applications
+npm run dev         # http://localhost:3000
+```
+
+`devchain` prints the throwaway keys to import for each role (verifier, school, donor). They
+are anvil's published defaults, so they are worthless by construction, and the script refuses
+to run against anything other than chain 31337.
+
+Checks:
+
+```bash
+cd web
+npm run verify              # abis + typecheck + lint + unit tests + production build
+npm run test:integration    # against the local chain, through the same ABIs the UI uses
+npm run smoke               # real browser, real wallet, real transactions
+```
+
 Deploy to testnet:
 
 ```bash
@@ -82,6 +109,10 @@ The deploy script refuses to run with fewer than two verifiers, and refuses to g
 address on an unknown chain. Both the registry address and the token address are immutable in
 the vault, so a wrong value at deploy time is unrecoverable.
 
+Then record the addresses in `packages/config/chains.json`. The interface reads them from
+there per chain and **never falls back to another network's addresses** — an unconfigured
+chain reads as "not deployed here" and says so.
+
 ## Layout
 
 ```
@@ -89,17 +120,35 @@ contracts/          Foundry project
   src/
     VerifiedEntityRegistry.sol      identity layer, m-of-n, self-governing
     EducationFundingVault.sol       contributions, disbursement, refunds
+    SchoolProfile.sol               self-asserted profile pages, fully on-chain
+    EdGrantLens.sol                 read-only aggregation, one call per screen
     interfaces/IVerifiedEntityRegistry.sol
   test/                             unit tests + solvency invariants
-  script/Deploy.s.sol
+  script/Deploy.s.sol, SeedDemo.s.sol
 packages/config/chains.json         network params and deployed addresses, keyed by chain ID
-web/                                frontend (not yet started)
+web/                                Next.js + wagmi + viem interface
+  src/lib/                          abi (generated), chains, contracts, format, request, uri
+  src/hooks/                        all chain reads and the transaction runner
+  src/components/trust/             the evidence-vs-marketing distinction, as components
+  scripts/                          abi export, dev chain seeding, browser smoke test
 ```
+
+## The interface, in one paragraph
+
+Every screen reads through view calls only. The verified badge links straight to the on-chain
+proof URI so a donor can re-check the verification themselves in one click. The contribution
+screen shows the disbursement destination as an address, before signing, alongside plain
+statements of what happens if the goal is met, if it is not, and if the school's verification
+is revoked. Registry facts and school-authored profile content are rendered differently on
+purpose — the badge is evidence, profile content is marketing, and an interface that gave them
+equal authority would hand impersonators the credibility this project exists to deny them.
+There are no countdown timers.
 
 ## A note on reading state
 
 The public mainnet RPC restricts `eth_getLogs`. The contracts therefore maintain enumerable
-on-chain state with paginated view functions, and **the dApp must remain fully functional using
-only `eth_call`**. Events exist for auditability and indexers, not as the primary read path.
-`requestSummary()` returns everything a contribution screen needs — including the disbursement
-destination and the school's proof URI — in a single call.
+on-chain state with paginated view functions, and **the dApp remains fully functional using
+only `eth_call`**. There is not one log query in the interface, and the integration test
+asserts it by counting JSON-RPC methods. Events exist for auditability and indexers, not as
+the primary read path. `requestSummary()` returns everything a contribution screen needs —
+including the disbursement destination and the school's proof URI — in a single call.

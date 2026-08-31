@@ -5,7 +5,7 @@ Written to be self-contained. If you are an AI assistant or a developer picking
 this up cold, with no access to the conversation that produced it, this file
 plus the three documents it names should be everything you need.
 
-Last updated: 2026-08-31
+Last updated: 2026-08-31 (interface built)
 Repo root:    /home/isane/Documents/DONCODER/EdGrant
 
 READ IN THIS ORDER
@@ -222,7 +222,7 @@ botchain.dev, botchain.io, botchain.sh. Ours is botchain.ai / @BOTChain_ai.
     round trip; and being stateless means it can be redeployed freely as the UI
     evolves without migrating anything that holds money or grants identity.
 
-  ---- test/ ------------------------------------- 63 tests, all passing -------
+  ---- test/ ------------------------------------- 66 tests, all passing -------
     VerifiedEntityRegistry.t.sol   18  m-of-n, revocation, fees, self-governance
     EducationFundingVault.t.sol    23  disbursement, refunds, revocation paths
     SchoolProfile.t.sol            11  gating, posts, hide-not-delete
@@ -243,9 +243,70 @@ botchain.dev, botchain.io, botchain.sh. Ours is botchain.ai / @BOTChain_ai.
                     REFUSES to run on chain 677.
 
   ---- other -------------------------------------------------------------------
-    packages/config/chains.json   network params + deployed addresses by chainId
+    packages/config/chains.json   network params + deployed addresses by chainId,
+                                  now including a localAnvil entry for development
     .env.example                  deployment configuration template
-    web/                          EMPTY. Frontend not started.
+
+  web/         Next.js 16 (App Router) + React 19 + wagmi 3 + viem 2 + Tailwind 4
+
+  ---- src/lib/ ----------------------------------------------------------------
+    abi/                GENERATED from contracts/out by `npm run abis`. Never edit.
+                        `as const` so viem infers args and returns from the ABI,
+                        which turns an interface/contract mismatch into a compile
+                        error instead of a runtime revert.
+    chains.ts           viem chain defs built FROM packages/config/chains.json.
+                        Nothing is hardcoded twice.
+    contracts.ts        address resolution: env var > chains.json > local generated.
+                        ALL-OR-NOTHING per chain. A half-configured chain reads as
+                        "not deployed" rather than half-working.
+    format.ts           money and dates. bigint-exact (never through Number());
+                        dates fixed to en-GB/UTC so SSR and client cannot disagree
+                        and two people cannot read different deadlines.
+    request.ts          THE STATE MACHINE. deriveRequestState() mirrors the vault's
+                        release/refund/contribute preconditions exactly. Unit tested.
+    uri.ts              allowlist for untrusted URIs. Only http(s) and ipfs:// ever
+                        become links; javascript:, data:, file:, etc. render inert.
+    errors.ts           every custom error from all four contracts -> a sentence.
+    wagmi.ts            injected connectors only. No WalletConnect id, no relay,
+                        no third-party key. EIP-6963 discovery does the rest.
+
+  ---- src/hooks/ --------------------------------------------------------------
+    use-edgrant.ts      EVERY chain read. All eth_call, zero log queries.
+    use-tx.ts           one transaction, signature -> receipt, with decoded errors,
+                        explorer links, and cache invalidation. Returns the RECEIPT
+                        so callers can decode a value the tx produced (the new
+                        request id) rather than racing on a counter.
+    use-now.ts          coarse 60s clock, for DISPLAY ONLY.
+
+  ---- src/components/trust/ ---------------------------------------------------
+    The trust model, as components. verified-badge, evidence-panel,
+    asserted-block, disbursement. See section 7b — this is not styling.
+
+  ---- pages -------------------------------------------------------------------
+    /                    global feed            lens.openRequests
+    /schools             directory              lens.directory
+    /schools/[address]   institution page       lens.schoolPage (ONE call)
+    /requests/[id]       contribution screen    vault.requestSummary (ONE call)
+    /portfolio           your contributions + pull refunds
+    /school/admin        school console: apply, profile, posts, attest balances
+    /verifier            verifier console: applications, confirmations, revocation
+    /how-it-works        the trust model, including what it is NOT
+
+  ---- web/scripts/ ------------------------------------------------------------
+    export-abis.mjs     contracts/out -> src/lib/abi. Fails loudly on a missing
+                        artifact rather than emitting an empty ABI.
+    dev-chain.mjs       one command to a complete interactive local demo: two
+                        verified schools, a paid-out balance, a partially funded
+                        one, one with no student context, an expired refundable
+                        one, and two pending applications (one at 1-of-2 so m-of-n
+                        can be completed in a single click). Prints the throwaway
+                        keys per role. Requires chain 31337.
+    smoke.mjs           browser test — see section 6b.
+
+  ---- web tests ---------------------------------------------------------------
+    49 unit          src/lib/*.test.ts — format, state derivation, URI allowlist
+    12 integration   tests/integration/ — live chain, through the real ABIs
+    58 browser       scripts/smoke.mjs — real browser, real wallet, real txs
 
 ================================================================================
 5. ACTING AS A DUMMY SCHOOL (testing)
@@ -316,61 +377,196 @@ run. That is confined to throwaway keys by construction: it hard-refuses chain
 ================================================================================
 6. QUICK START
 ================================================================================
-  cd contracts
-  forge build
-  forge test                                          # 63 tests
-  forge test --match-contract VaultSolvency -vvv      # the solvency invariants
+  CONTRACTS
+    cd contracts
+    forge build
+    forge test                                          # 66 tests
+    forge test --match-contract VaultSolvency -vvv       # the solvency invariants
+
+  INTERFACE, against a local chain with a full seeded demo
+    cd web
+    npm install
+    npm run anvil       # terminal 1
+    npm run devchain    # terminal 2, once — deploys + seeds, prints role keys
+    npm run dev         # http://localhost:3000
+
+    Then add a network in your wallet (RPC http://127.0.0.1:8545, chain id 31337)
+    and import one of the keys devchain printed. Each role sees a different app:
+    the donor gets the contribution flow, the school gets the console, the
+    verifier gets the application queue.
 
   Deploy to testnet:
     cp .env.example .env    # VERIFIERS, VERIFIER_THRESHOLD, VERIFICATION_FEE_WEI
     forge script script/Deploy.s.sol:Deploy --rpc-url bohr --broadcast \
       --verify --verifier blockscout
-  Then RECORD THE ADDRESSES in packages/config/chains.json.
+  Then RECORD THE ADDRESSES in packages/config/chains.json, under
+  botchainTestnet.contracts. The interface picks them up from there. It will NOT
+  guess, and it will NOT borrow another chain's addresses.
 
 ================================================================================
-7. THE FRONTEND (not started — this is the next major piece)
+6b. HOW THE INTERFACE IS TESTED, AND WHY EACH LAYER EXISTS
 ================================================================================
-Stack intended: Next.js + wagmi + viem + TypeScript, in web/.
-Read all data through EdGrantLens. Never scan logs for core flows (see C1).
+  cd web
+  npm run verify              # abis + typecheck + lint + unit + production build
+  npm run test:integration    # needs `npm run anvil`
+  npm run smoke               # needs anvil + `npm run dev`
 
-  PAGES
-    /                      global feed of open requests (lens.openRequests)
-    /schools               directory of verified institutions (lens.directory)
-    /schools/[address]     school profile page (lens.schoolPage — ONE call)
-    /requests/[id]         request detail + contribute (vault.requestSummary)
-    /school/admin          school's own console: profile, posts, new requests
-    /verifier              verifier console: pending applications, confirmations
+  UNIT (49) — src/lib/*.test.ts
+    The pure logic, where a mistake is silent. Money formatting is asserted exact
+    above 2^53 because going through Number() would round someone's balance.
+    deriveRequestState is asserted against every reachable vault precondition,
+    including the two that are easy to get backwards: a deadline that passes with
+    the goal MET stays releasable rather than refundable, and revocation outranks
+    everything except an already-disbursed request. The URI allowlist is asserted
+    against a list of hostile schemes.
 
-  THE CONTRIBUTION SCREEN IS THE MOST IMPORTANT SCREEN IN THE PRODUCT.
-  Before the donor signs, it must show, without them reading any documentation:
-    - that the school is verified, and WHAT the verification is based on
-    - the verified badge LINKING DIRECTLY to proofURI, so they can re-check it
-      themselves in one click
-    - THE DISBURSEMENT DESTINATION, EXPLICITLY, on the screen — not in terms
-    - what happens if the goal is not met (individual refund, stated plainly)
-  vault.requestSummary(id) returns every one of these in a single call. It was
-  designed for this screen specifically.
+  INTEGRATION (12) — tests/integration/, against a live chain
+    The seam between interface and contracts, through the real generated ABIs and
+    the real derivation. The contracts already have their own 66 tests; what needs
+    testing here is that the frontend reads the right things, decodes them into
+    the right shapes, and reaches the SAME verdict about a request that the
+    contract does. Where the interface says an action is impossible, the test
+    simulates the call and asserts it reverts.
 
-  SCHOOL PROFILE PAGE — the trust separation is a HARD REQUIREMENT:
-    VERIFIED (from registry, render with authority):
-        entityName, proofURI link, verifiedAt, the badge itself
-    SELF-ASSERTED (from SchoolProfile, render as clearly the school's own words):
-        displayName, logo, banner, description, website, location, all posts
-    TRACK RECORD (computed from vault state, factual):
-        stats.totalDisbursed is the headline. "$8,400 delivered across 12
-        students" is the most honest trust signal in the entire product,
-        because it is money that actually arrived, derived from chain state,
-        and it cannot be faked by anyone.
+    It also asserts the architectural claim by counting JSON-RPC methods:
+    exercising every screen produced eth_call and NOTHING ELSE. Zero eth_getLogs.
+    That is constraint C1 turned into a regression test — without it, someone adds
+    a log query, it works on testnet, and it fails on mainnet.
 
-  Two-step USDT flow: approve then contribute (no permit — see C3). Show it as
-  two clear steps rather than hiding it. Permit2 can collapse this later.
+  BROWSER (58) — scripts/smoke.mjs
+    A 200 response proves almost nothing here: every screen loads its data
+    client-side, so server-rendered HTML only shows that the shell compiled. This
+    drives real Chromium with a real EIP-1193 wallet injected (announced over
+    EIP-6963, backed by a viem account holding an anvil key) and sends REAL
+    transactions: approve, contribute, release, refund, attest, confirm.
+
+    It checks the things that are easy to claim and easy to break:
+      - the verified badge links to the proof URI, target=_blank, rel=noreferrer
+      - the disbursement destination is on the contribution screen before signing
+      - both outcomes are stated on the same screen as the amount field
+      - self-asserted content is captioned AND computed-style-different from the
+        evidence panel (dashed vs solid, different background) — the trust
+        separation asserted as a fact about the DOM, not a promise in a comment
+      - NO countdown or urgency copy: a regex list of "hurry", hh:mm:ss timers,
+        "last chance", flame/alarm emoji
+      - a school's unreachable logo degrades to a monogram, not a broken image
+      - mobile: drawer is a real modal dialog, focus enters it, Tab cannot escape
+        it, Escape closes and unlocks scroll, every target >=44px, zero horizontal
+        overflow on every route at 360px, sticky action bar actually at the bottom
+      - light and dark both clear 7:1 body contrast; dark applies before paint
+      - no console errors, page errors, or same-origin request failures
+
+    It resets the chain with anvil_reset and reseeds before running, so it is
+    idempotent — the flow tests spend state (they withdraw the expired balance and
+    cast a deciding confirmation) and a second run would otherwise report
+    staleness as failure.
+
+  FOUR BUGS THE BROWSER LAYER CAUGHT THAT NOTHING ELSE WOULD HAVE:
+    1. The approve and contribute steps shared one transaction runner, so the
+       approval succeeding cleared the amount field and disabled the next button.
+       A donor had to retype the figure they had just committed to.
+    2. The portfolio decided "can I withdraw this?" from the browser clock instead
+       of the vault's own `refundable` flag, so a genuinely withdrawable balance
+       was filed under "in progress" whenever the two clocks disagreed. On the one
+       page whose entire purpose is getting money back.
+    3. The school page linkified the proof URI but had no explicit "re-check the
+       proof" affordance — the single most important action in the trust model was
+       a bare URL.
+    4. A dead logo URI left a torn-image glyph on an institution's page.
+
+================================================================================
+7. THE INTERFACE — WHAT IS BUILT AND WHAT IT REFUSES TO DO
+================================================================================
+Stack: Next.js 16 App Router, React 19, wagmi 3, viem 2, Tailwind 4, TypeScript.
+All data read through EdGrantLens and the vault's own summaries. No log scanning
+for anything, ever (C1).
+
+  DELIBERATE ABSENCES — each of these is a decision, not an omission:
+    * NO countdown timers, no "X days left" badges in warning colours, no gradient
+      thermometers, no scarcity copy. Deadlines are dates. Urgency is the
+      fraudster's primary tool and this product exists to replace it.
+    * NO WalletConnect project id, no relay, no analytics, no third-party API key.
+      Injected wallets only; a donor's connection goes browser -> RPC and nowhere
+      else. EIP-6963 discovery means no wallet list to maintain.
+    * NO next/image on school-supplied URIs. A plain <img> keeps the fetch in the
+      visitor's browser so a school cannot make our server request arbitrary URLs.
+    * NO unlimited token approval. The approve step is for the exact amount typed,
+      and the panel says so whether or not an approval is currently outstanding.
+      Slightly more friction; considerably less standing authority granted.
+    * NO nickname layer over addresses. A friendly alias is exactly the indirection
+      an impersonator would want inserted.
+    * NO field anywhere for a verifier's subjective opinion of an institution.
+
+  THE CONTRIBUTION SCREEN (/requests/[id]) — the most important screen.
+  Before the donor signs, without reading documentation, it shows:
+    - that the school is verified, and what that verification is BASED ON
+    - the badge, linking straight to proofURI, plus an explicit "re-check the
+      proof yourself" button
+    - the disbursement destination as a full copyable address, with the statement
+      that no function anywhere in the vault can change it
+    - what happens if the goal is met, if it is not, and if verification is
+      revoked — three plain paragraphs, on the same screen as the amount field
+    - a three-step path diagram naming the party deliberately absent from it
+  vault.requestSummary(id) returns every one of these in ONE eth_call.
+
+  THE STATE MACHINE — src/lib/request.ts, deriveRequestState()
+  One place decides what a request "is". It mirrors the vault exactly:
+      canRelease    = !disbursed && raised >= goal && verified
+      canRefund     = !disbursed && (!verified || (deadline passed && raised<goal))
+      canContribute = !disbursed && verified && raised<goal && !refundable
+  CRITICAL: it prefers the CONTRACT's `refundable` flag over comparing a deadline
+  to the browser clock. block.timestamp is the only clock that decides whether a
+  call succeeds, and it can differ from a visitor's through skew, a timezone bug,
+  or a local chain whose time has been advanced. A screen offering a button the
+  vault will reject wastes a donor's gas and their trust. This was bug #2 above.
+
+  STUDENT REFERENCES ARE HASHED IN THE BROWSER.
+  The school types an internal identifier; keccak256 of it is what goes on-chain,
+  and the hash is shown before signing so nothing is hidden. Even a bare enrolment
+  number is a re-identification vector once it is public and permanent (R5).
+  This creates a real problem — a registrar cannot read a request back and recall
+  which student it is — so the school console has a REFERENCE MATCHER: type a
+  candidate reference, it is hashed locally and the matching request is
+  highlighted. Nothing leaves the browser. Consistent with SeedDemo.s.sol, which
+  also uses keccak256 of the identifier.
+
+================================================================================
+7b. THE ONE UI RULE THAT IS A TRUST-MODEL REQUIREMENT, NOT A STYLE CHOICE
+================================================================================
+D-10 restated, because it is the thing most likely to be quietly undone by a
+future redesign that "cleans up the visual inconsistency".
+
+PROFILE CONTENT IS MARKETING. THE BADGE IS EVIDENCE. THEY MUST LOOK DIFFERENT.
+
+  VERIFIED — components/trust/evidence-panel.tsx
+    Solid rule, 3px accent border, seal glyph, full-contrast ink, structured like
+    a record, and a button linking out to proofURI. Source: the registry only —
+    entityName, entityType, proofURI, verifiedAt, and the bound address.
+
+  SELF-ASSERTED — components/trust/asserted-block.tsx
+    DASHED rule, sunken surface, softer ink, serif body set like a quotation, and
+    a header caption that always says nobody verified it. Source: SchoolProfile —
+    displayName, logo, banner, description, website, location, every post. Content
+    cannot be rendered without the caveat because the caveat is in the wrapper.
+
+  TRACK RECORD — components/schools/track-record.tsx
+    Computed from vault state. stats.totalDisbursed is the headline and gets its
+    own coloured band: money that ACTUALLY REACHED the institution. Unfakeable by
+    the school, by a verifier, or by us. "Total requested" is deliberately
+    de-emphasised as the much weaker signal it is.
+
+  If a school's self-chosen display name differs from the name it was verified
+  under, the interface SAYS SO next to it rather than smoothing it over.
+
+  The browser test asserts the two panels differ in computed border-style and
+  background, not merely in wording. Do not "unify" them.
 
 ================================================================================
 8. OPEN QUESTIONS / NOT YET DONE
 ================================================================================
-  [ ] Nothing is deployed anywhere yet.
-  [ ] Frontend not started (web/ is empty).
-  [ ] WSS endpoint on 968 — probe was inconclusive, needs a real ws client.
+  [ ] Nothing is deployed to a public network yet. Local anvil only.
+  [ ] WSS endpoint on 968 — probe was inconclusive, needs a real ws client. The
+      interface polls every 12s instead, which is fine but not live.
   [ ] Paymaster: does a gasless endpoint exist on 968, and can we get a sponsor
       policy? BOT Chain inherits BSC's EOA paymaster (NOT ERC-4337: zero-gas-
       price txs bundled by builders, via pm_isSponsorable JSON-RPC; provider
@@ -379,11 +575,14 @@ Read all data through EdGrantLens. Never scan logs for core flows (see C1).
       will not buy BOT, and a donor who will not acquire a gas token first — and
       it introduces NO custody, since the paymaster pays validators, not us.
       PHASE 2. Do not design v1 around it.
+  [ ] Permit2 would collapse approve + contribute into one signature. The
+      interface currently shows the two steps honestly as two steps. Phase 2.
   [ ] Practical eth_getLogs block-range cap on 677.
   [ ] Is Safe deployed on BOT Chain? Mostly moot (registry has m-of-n built in)
       but verifiers may prefer a Safe UI for key management.
   [ ] Verifier key custody for testnet not yet set up (see KEYS.md).
   [ ] No professional audit. Do not put real money on this as it stands.
+  [ ] No i18n. Copy is English-only, and the audience for this is not.
   [ ] Legal: student-privacy law, charitable solicitation, and money
       transmission are all UNEXAMINED. The essay is explicit that this is a
       testnet proof of concept and makes no claim about any jurisdiction.

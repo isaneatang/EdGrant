@@ -11,6 +11,12 @@ contracts/.env
 node_modules/
 web/.next/
 web/out/
+web/tsconfig.tsbuildinfo
 .env
 .env.local
 .DS_Store
+
+# Local dev chain. `npm run devchain` writes throwaway anvil addresses into
+# web/.env.local, covered by the .env.local rule above. Real deployments go in
+# packages/config/chains.json, which is reviewed and intentional.
+web/.anvil.log

@@ -1,0 +1,558 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   EdGrant design system — "Ledger"
+   --------------------------------------------------------------------------
+   The interface's job is to make the trust model legible, so the visual
+   language is that of an institutional record rather than a fundraising page.
+
+   Three rules the theme enforces:
+
+   1. NO URGENCY. No countdown timers, no pulsing, no red-hot scarcity cues.
+      Urgency is the primary tool of crowdfunding fraud and this product exists
+      to replace that. Deadlines are dates. Progress is a fact, not a prod.
+
+   2. EVIDENCE AND MARKETING LOOK DIFFERENT. Verified facts (registry: entity
+      name, proof URI, verification date) get high contrast, a seal, a solid
+      rule, and a link out so anyone can re-check them. Self-asserted profile
+      content gets a quieter, quoted treatment and an explicit caveat. If they
+      looked alike, an impersonator's page would look exactly like a real one.
+
+   3. DENSITY OVER DECORATION. Hairlines, tabular figures, tight radii, almost
+      no shadow. Money on screen should read like a statement, not a banner.
+   ========================================================================== */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* ---- Type ---- */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: var(--font-serif-display), ui-serif, Georgia, Cambria, "Times New Roman",
+    serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", "Cascadia Mono",
+    "Roboto Mono", Menlo, monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-2xs--letter-spacing: 0.06em;
+
+  /* ---- Radii: tight. Serious, not playful. ---- */
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /* ---- Palette. Semantic tokens only; components never name a raw colour. ---- */
+  --color-canvas: #fbfbf9;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f4f4f1;
+  --color-surface-raised: #ffffff;
+
+  --color-ink: #14191f;
+  --color-ink-soft: #3d4753;
+  --color-ink-muted: #6a7480;
+  --color-ink-faint: #939ca6;
+
+  --color-rule: #e2e2dd;
+  --color-rule-strong: #cfd0c9;
+
+  /* Evidence. Used for the verified badge and nothing decorative. */
+  --color-evidence: #16456d;
+  --color-evidence-soft: #eaf0f6;
+  --color-evidence-rule: #b9cbdd;
+
+  /* Delivered — money that actually arrived. The strongest honest signal. */
+  --color-delivered: #1c5a3e;
+  --color-delivered-soft: #e8f1ec;
+  --color-delivered-rule: #b4d0c0;
+
+  /* Attention. Neutral information, never alarm. */
+  --color-notice: #7a5410;
+  --color-notice-soft: #f7f1e3;
+  --color-notice-rule: #ddd0b0;
+
+  /* Fault. Reserved for revocation and failed transactions. */
+  --color-fault: #8b2f26;
+  --color-fault-soft: #f8ecea;
+  --color-fault-rule: #e0bdb8;
+
+  --color-focus: #16456d;
+}
+
+.dark {
+  --color-canvas: #0f1216;
+  --color-surface: #16191e;
+  --color-surface-sunken: #12151a;
+  --color-surface-raised: #1b1f25;
+
+  --color-ink: #e9eae6;
+  --color-ink-soft: #bfc5cc;
+  --color-ink-muted: #98a0aa;
+  --color-ink-faint: #6f7883;
+
+  --color-rule: #262b32;
+  --color-rule-strong: #363c45;
+
+  --color-evidence: #8db9e0;
+  --color-evidence-soft: #15212c;
+  --color-evidence-rule: #2c4258;
+
+  --color-delivered: #79c49c;
+  --color-delivered-soft: #12211a;
+  --color-delivered-rule: #2a4736;
+
+  --color-notice: #d8b877;
+  --color-notice-soft: #221d13;
+  --color-notice-rule: #453a24;
+
+  --color-fault: #e29a91;
+  --color-fault-soft: #241614;
+  --color-fault-rule: #4a2b26;
+
+  --color-focus: #8db9e0;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  * {
+    border-color: var(--color-rule);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv05" 1, "ss01" 1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* Keep content clear of iOS home indicators and notches. */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    letter-spacing: -0.011em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Numbers must line up in columns; a statement that jitters reads as sloppy. */
+  .tabular,
+  th,
+  td {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  ::selection {
+    background: var(--color-evidence-soft);
+    color: var(--color-ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   Component utilities
+   ========================================================================== */
+
+@utility container-page {
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  @media (width >= 48rem) {
+    padding-inline: 2rem;
+  }
+}
+
+@utility container-reading {
+  width: 100%;
+  max-width: 44rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  @media (width >= 48rem) {
+    padding-inline: 2rem;
+  }
+}
+
+/* --- Eyebrow label: small caps, wide tracking. Used to name a data class. --- */
+@utility eyebrow {
+  font-size: var(--text-2xs);
+  line-height: 1rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-family: var(--font-sans);
+}
+
+/* --- Surfaces --- */
+@utility card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+}
+
+@utility card-sunken {
+  background-color: var(--color-surface-sunken);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-md);
+}
+
+/* --- Hairline data rows: label left, value right, ruled between. --- */
+@utility data-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.625rem;
+  border-bottom: 1px solid var(--color-rule);
+  font-size: 0.875rem;
+}
+
+/* --- Buttons -------------------------------------------------------------
+   44px minimum height everywhere: this is used one-handed on phones. */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding-inline: 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    opacity 120ms ease;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@utility btn-primary {
+  background-color: var(--color-ink);
+  color: var(--color-canvas);
+  &:hover:not(:disabled) {
+    background-color: var(--color-ink-soft);
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+@utility btn-evidence {
+  background-color: var(--color-evidence);
+  color: var(--color-surface);
+  &:hover:not(:disabled) {
+    filter: brightness(1.12);
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+@utility btn-secondary {
+  background-color: var(--color-surface);
+  border-color: var(--color-rule-strong);
+  color: var(--color-ink);
+  &:hover:not(:disabled) {
+    background-color: var(--color-surface-sunken);
+  }
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+@utility btn-ghost {
+  background-color: transparent;
+  color: var(--color-ink-soft);
+  &:hover:not(:disabled) {
+    background-color: var(--color-surface-sunken);
+    color: var(--color-ink);
+  }
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+@utility btn-sm {
+  min-height: 2.25rem;
+  padding-inline: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+/* --- Form controls --- */
+@utility field {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.625rem 0.75rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  font-size: 0.9375rem;
+  /* 16px+ on mobile stops iOS Safari zooming the viewport on focus. */
+  @media (width < 48rem) {
+    font-size: 1rem;
+  }
+  &::placeholder {
+    color: var(--color-ink-faint);
+  }
+  &:disabled {
+    background-color: var(--color-surface-sunken);
+    color: var(--color-ink-muted);
+    cursor: not-allowed;
+  }
+}
+
+@utility field-invalid {
+  border-color: var(--color-fault-rule);
+}
+
+@utility label-text {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-ink-soft);
+  margin-bottom: 0.375rem;
+}
+
+/* --- Chips --- */
+@utility chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--color-rule);
+  background-color: var(--color-surface-sunken);
+  color: var(--color-ink-soft);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+@utility chip-evidence {
+  border-color: var(--color-evidence-rule);
+  background-color: var(--color-evidence-soft);
+  color: var(--color-evidence);
+}
+
+@utility chip-delivered {
+  border-color: var(--color-delivered-rule);
+  background-color: var(--color-delivered-soft);
+  color: var(--color-delivered);
+}
+
+@utility chip-notice {
+  border-color: var(--color-notice-rule);
+  background-color: var(--color-notice-soft);
+  color: var(--color-notice);
+}
+
+@utility chip-fault {
+  border-color: var(--color-fault-rule);
+  background-color: var(--color-fault-soft);
+  color: var(--color-fault);
+}
+
+/* --- Evidence block: verified, re-checkable, rendered with authority. --- */
+@utility evidence-panel {
+  border: 1px solid var(--color-evidence-rule);
+  border-left-width: 3px;
+  border-left-color: var(--color-evidence);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+/* --- Self-asserted block: the school's own words, verified by nobody.
+       Deliberately quieter, quoted, and captioned. --- */
+@utility asserted-panel {
+  border: 1px dashed var(--color-rule-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-sunken);
+  color: var(--color-ink-soft);
+}
+
+@utility asserted-prose {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-ink-soft);
+}
+
+/* --- Progress: a factual bar. No gradient, no animation, no glow. --- */
+@utility meter {
+  position: relative;
+  height: 0.375rem;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 999px;
+  background-color: var(--color-surface-sunken);
+  border: 1px solid var(--color-rule);
+}
+
+@utility meter-fill {
+  height: 100%;
+  background-color: var(--color-evidence);
+}
+
+@utility meter-fill-delivered {
+  height: 100%;
+  background-color: var(--color-delivered);
+}
+
+/* --- Link styles --- */
+@utility link {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--color-rule-strong);
+  text-underline-offset: 3px;
+  &:hover {
+    text-decoration-color: var(--color-ink);
+  }
+}
+
+@utility link-evidence {
+  color: var(--color-evidence);
+  text-decoration: underline;
+  text-decoration-color: var(--color-evidence-rule);
+  text-underline-offset: 3px;
+  font-weight: 500;
+  &:hover {
+    text-decoration-color: var(--color-evidence);
+  }
+}
+
+/* --- Mobile sticky action bar. Sits above the home indicator. --- */
+@utility action-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 40;
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-rule);
+  padding: 0.75rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom));
+  box-shadow: 0 -1px 12px rgb(0 0 0 / 0.06);
+}
+
+@utility overlay-shadow {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 8px 32px rgb(0 0 0 / 0.12);
+}
+
+/* --- Skeleton: a calm pulse, not a shimmer sweep. --- */
+@utility skeleton {
+  background-color: var(--color-surface-sunken);
+  border-radius: var(--radius-xs);
+  animation: eg-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes eg-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes eg-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes eg-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes eg-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-slide-in {
+  animation: eg-slide-in 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@utility animate-fade-in {
+  animation: eg-fade-in 160ms ease-out;
+}
+
+@utility animate-rise {
+  animation: eg-rise 200ms ease-out;
+}
+
+@utility spin-slow {
+  animation: eg-spin 900ms linear infinite;
+}
+
+@keyframes eg-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Locks background scroll while the drawer or a modal is open. */
+@utility scroll-locked {
+  overflow: hidden;
+  touch-action: none;
+}

@@ -1,5 +1,27 @@
 {
   "_comment": "BOT Chain network parameters. Every value verified against the live RPC on 2026-08-31, not copied from docs. Never fall back from mainnet to testnet: BOT Chain's own docs warn about this and the vault's token/registry are immutable.",
+  "_addresses": "verifiedEntityRegistry / educationFundingVault / schoolProfile / edGrantLens stay null until a real deployment exists on that chain. The interface treats null as 'not deployed here' and says so, rather than guessing. Local anvil addresses are written by web/scripts/dev-chain.mjs into web/.env.local, which is gitignored.",
+  "localAnvil": {
+    "chainId": 31337,
+    "name": "Local Anvil",
+    "rpcUrl": "http://127.0.0.1:8545",
+    "explorerUrl": null,
+    "explorerApiUrl": null,
+    "faucetUrl": null,
+    "testnet": true,
+    "nativeCurrency": { "name": "Ether", "symbol": "ETH", "decimals": 18 },
+    "contracts": {
+      "usdt": null,
+      "wbot": null,
+      "multicall3": null,
+      "permit2": null,
+      "verifiedEntityRegistry": null,
+      "educationFundingVault": null,
+      "schoolProfile": null,
+      "edGrantLens": null
+    },
+    "notes": "Development only. `cd web && npm run devchain` deploys MockUSDT plus all four contracts, seeds a demo, and writes the addresses to web/.env.local. Left null here on purpose: a throwaway chain's addresses do not belong in a reviewed file."
+  },
   "botchainTestnet": {
     "chainId": 968,
     "name": "BOT Chain Testnet (Bohr)",
@@ -7,14 +29,17 @@
     "explorerUrl": "https://scan.bohr.life",
     "explorerApiUrl": "https://scan.bohr.life/api",
     "faucetUrl": "https://faucet.botchain.ai/basic",
-    "nativeCurrency": {"name": "Test BOT", "symbol": "tBOT", "decimals": 18},
+    "testnet": true,
+    "nativeCurrency": { "name": "Test BOT", "symbol": "tBOT", "decimals": 18 },
     "contracts": {
       "usdt": "0x75edC9335175Fc0552D51D48439F229c10420fe3",
       "wbot": "0xD5452816194a3784dBa983426cCe7c122F4abd30",
       "multicall3": "0x47FA21f684bBAD707A53a0f9BE59F1422F46C265",
       "permit2": "0xaE85b2bc7578F8Ca9217900a2D548151F96447de",
       "verifiedEntityRegistry": null,
-      "educationFundingVault": null
+      "educationFundingVault": null,
+      "schoolProfile": null,
+      "edGrantLens": null
     }
   },
   "botchainMainnet": {
@@ -24,14 +49,17 @@
     "explorerUrl": "https://scan.botchain.ai",
     "explorerApiUrl": "https://scan.botchain.ai/api",
     "faucetUrl": null,
-    "nativeCurrency": {"name": "BOT", "symbol": "BOT", "decimals": 18},
+    "testnet": false,
+    "nativeCurrency": { "name": "BOT", "symbol": "BOT", "decimals": 18 },
     "contracts": {
       "usdt": "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C",
       "wbot": "0xD5452816194a3784dBa983426cCe7c122F4abd30",
       "multicall3": "0x47FA21f684bBAD707A53a0f9BE59F1422F46C265",
       "permit2": "0x8366170f09a04f715a13549D616a06aED16Db7c3",
       "verifiedEntityRegistry": null,
-      "educationFundingVault": null
+      "educationFundingVault": null,
+      "schoolProfile": null,
+      "edGrantLens": null
     },
     "notes": "eth_getLogs is restricted on this public RPC. The dApp must read state through view functions, never by scanning logs."
   }

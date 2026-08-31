@@ -1,0 +1,41 @@
+{
+  "name": "@edgrant/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "EdGrant interface. Reads chain state through view calls only — never eth_getLogs.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "abis": "node scripts/export-abis.mjs",
+    "test": "vitest run --project unit",
+    "test:watch": "vitest --project unit",
+    "test:integration": "vitest run --project integration",
+    "devchain": "node scripts/dev-chain.mjs",
+    "anvil": "anvil --host 127.0.0.1 --port 8545 --chain-id 31337",
+    "verify": "npm run abis && npm run typecheck && npm run lint && npm run test && npm run build",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.102.8",
+    "next": "^16.3.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "viem": "^2.56.0",
+    "wagmi": "^3.7.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^9.37.0",
+    "eslint-config-next": "^16.3.3",
+    "playwright-core": "^1.62.1",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.11"
+  }
+}

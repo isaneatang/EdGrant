@@ -1,0 +1,252 @@
+================================================================================
+EDGRANT - NEXT STEPS
+================================================================================
+Ordered by what blocks what, not by importance. Step 2 has a 24-hour rate limit
+attached to it, so start it before you start anything else.
+
+Read HANDOFF.txt first if you are picking this up cold. If this file and
+EDUCATION_FUNDING_PROJECT_ESSAY.md ever disagree, THE ESSAY WINS.
+
+Status at the time of writing:
+  contracts   complete, 66 tests passing, NOT DEPLOYED to any public network
+  interface   complete, 49 unit + 12 integration + 58 browser checks passing
+  chain       local anvil only
+
+
+--------------------------------------------------------------------------------
+1. CLOSE THE ONE VERIFICATION GAP  (15 minutes, do this first, it is cheap)
+--------------------------------------------------------------------------------
+The 58/58 browser run happened BEFORE the final round of lint-driven refactors.
+Those refactors touched three things the browser suite covers, so three specific
+behaviours are currently unverified rather than verified-and-passing:
+
+  a) contribute-panel  setInput moved from a useEffect into the contribute click
+                       handler. Check the amount field clears after a successful
+                       contribution and does NOT clear after a mere approval.
+  b) theme.tsx         mount effect replaced with lazy state initialisers. Check
+                       dark mode still applies before first paint and the light
+                       preference survives a reload.
+  c) new-request-form  deadline bounds now come from useChainTime() and the
+                       publish button is gated on `now > 0`. Check the button
+                       actually enables — if useBlock ever fails, it never will.
+
+  cd web
+  npm run anvil                 # terminal 1
+  npm run dev                   # terminal 2
+  npm run smoke                 # terminal 3 — resets and reseeds automatically
+
+Expect 58 passed, 0 failed. If (c) fails, the useBlock query is the suspect.
+
+
+--------------------------------------------------------------------------------
+2. FUND A DEPLOYER ON BOT CHAIN TESTNET  (start now — 24h rate limit)
+--------------------------------------------------------------------------------
+The faucet gives 10 tBOT per address per 24 hours. A full rehearsal needs a
+deployer, 2-3 verifiers, a school, and 2-3 contributors. You cannot faucet them
+all in one day, so fund the deployer first and drip to the other roles from it.
+
+This gates steps 4 through 7. Do not discover it on demo day.
+
+  Faucet    https://faucet.botchain.ai/basic
+  Chain id  968
+  RPC       https://rpc.bohr.life
+  Explorer  https://scan.bohr.life
+
+  cast balance <deployer> --rpc-url https://rpc.bohr.life
+
+Also needed for step 6: testnet USDT for the donor accounts, at
+0x75edC9335175Fc0552D51D48439F229c10420fe3 (6 decimals). Work out where that
+comes from before you need it — the faucet gives native tBOT, not USDT. If there
+is no USDT faucet, the honest fallback is to deploy MockUSDT to 968 and pass it
+via TOKEN_ADDRESS, and to say so plainly wherever the demo is shown.
+
+
+--------------------------------------------------------------------------------
+3. VERIFIER KEY CUSTODY  (READ KEYS.md BEFORE TOUCHING ANY KEY)
+--------------------------------------------------------------------------------
+Verifier keys are the trust model. They decide which wallets the world recognises
+as real institutions. They are NOT disposable, and the habit should be right on
+testnet so it is right by the time it matters.
+
+  - Generate each one separately:  cast wallet new
+  - Separate custody per verifier. Not all on one machine.
+  - Import into Foundry's encrypted keystore, never into .env:
+      cast wallet import edgrant-verifier-a --interactive
+  - .env holds verifier ADDRESSES ONLY. Never a verifier private key.
+  - Threshold >= 2 on testnet. Above 2 on mainnet.
+
+Blast radius if `threshold` of them are compromised: an attacker can verify a
+fake school and take FUTURE donations, and can grief by revoking real ones. They
+CANNOT redirect an existing request — request.school is set once at creation and
+no setter exists anywhere (test_disbursementDestinationIsImmutable). That
+containment is why the vault has no administrative surface, and it is the reason
+this is survivable rather than fatal.
+
+The DEPLOYER key is genuinely disposable: neither contract stores msg.sender in
+its constructor and there is no owner variable anywhere
+(test_deployerRetainsNoPrivilegeAfterConstruction).
+
+
+--------------------------------------------------------------------------------
+4. DEPLOY ALL FOUR CONTRACTS TO 968
+--------------------------------------------------------------------------------
+  cp .env.example .env
+  # fill in: VERIFIERS (addresses, comma separated), VERIFIER_THRESHOLD,
+  #          VERIFICATION_FEE_WEI
+  cd contracts
+  forge script script/Deploy.s.sol:Deploy --rpc-url bohr --broadcast \
+    --verify --verifier blockscout
+
+The script refuses fewer than two verifiers and refuses to guess a token address
+on an unknown chain. Both refusals are deliberate: the registry and token are
+IMMUTABLE in the vault, so a wrong value at deploy time is unrecoverable.
+
+If Blockscout verification fails, retry it separately rather than redeploying:
+  forge verify-contract <address> src/EducationFundingVault.sol:EducationFundingVault \
+    --chain 968 --verifier blockscout \
+    --verifier-url https://scan.bohr.life/api
+Unverified source on a block explorer undercuts the entire "check it yourself"
+argument, so treat verification as part of deploying rather than a nice-to-have.
+
+
+--------------------------------------------------------------------------------
+5. RECORD THE ADDRESSES
+--------------------------------------------------------------------------------
+Edit packages/config/chains.json -> botchainTestnet.contracts:
+
+  "verifiedEntityRegistry": "0x...",
+  "educationFundingVault":  "0x...",
+  "schoolProfile":          "0x...",
+  "edGrantLens":            "0x..."
+
+This is the single source of truth, shared by the contracts side and the
+interface. Nothing is hardcoded twice, and there is no cross-chain fallback: the
+interface treats a chain with any address missing as "not deployed here" and says
+so. Leave 677 (mainnet) null.
+
+Then point the interface at 968 by default:
+  web/.env.local
+    NEXT_PUBLIC_DEFAULT_CHAIN_ID=968
+
+  Note: `npm run devchain` OVERWRITES web/.env.local with local anvil addresses.
+  If you are working against 968, do not run it, or restore this file afterwards.
+  Next reads .env.local at server start, so restart `npm run dev` after changing it.
+
+  cd web && npm run verify        # typecheck + lint + unit + production build
+
+
+--------------------------------------------------------------------------------
+6. SEED AND SMOKE-TEST AGAINST THE LIVE TESTNET
+--------------------------------------------------------------------------------
+  # THROWAWAY KEYS ONLY. SeedDemo hard-refuses chain 677; do not remove that guard.
+  export VERIFIER_A_PK=... VERIFIER_B_PK=... SCHOOL_PK=... DONOR_PK=...
+  export REGISTRY_ADDRESS=... VAULT_ADDRESS=... PROFILE_ADDRESS=... LENS_ADDRESS=...
+  cd contracts
+  forge script script/SeedDemo.s.sol:SeedDemo --rpc-url bohr --broadcast --slow
+
+Then the browser suite against the real network. It cannot reset a public chain,
+so tell it not to try:
+
+  cd web
+  SMOKE_NO_RESEED=1 SMOKE_BASE_URL=http://127.0.0.1:3000 npm run smoke
+
+Expect some failures, and read them carefully rather than adjusting the test
+until it is green. The state-spending checks (withdraw the expired balance, cast
+a deciding confirmation) depend on seeded state that only exists once. The ones
+that MUST pass on 968 are the read-path, trust-separation, mobile, and theme
+checks — those are the assertions about the product rather than about the seed.
+
+Also confirm the thing the architecture actually rests on:
+  cd web && npm run test:integration    # against 968 if you point it there
+The eth_getLogs == 0 assertion matters more on a public RPC than on anvil,
+because on anvil a log query would have worked.
+
+
+--------------------------------------------------------------------------------
+7. LIVE END-TO-END REHEARSAL WITH KEYS HELD BY DIFFERENT PEOPLE
+--------------------------------------------------------------------------------
+This is the step most likely to be skipped and the one most worth doing. The
+verifier flow has only ever been exercised with one person holding every key,
+which is the one configuration that proves nothing about m-of-n.
+
+  - 3 verifiers on 3 machines, 3 separate wallets
+  - 1 school on its own machine
+  - 2-3 contributors, at least one on a phone on mobile data
+
+  Walk the whole path:
+    school applies -> verifier A confirms -> NOTHING HAPPENS (this is the point)
+    -> verifier B confirms -> verified
+    school publishes a profile and attests a fee balance
+    contributors approve + contribute from separate wallets
+    a THIRD party calls release() — nobody involved in the request
+    then, on a second request, let a deadline pass unmet and have each
+    contributor withdraw their own contribution
+    then revoke a verification and confirm payout becomes impossible while
+    withdrawals open immediately
+
+  Write down anything a participant had to ask you to explain. Every one of those
+  is an interface defect, because the whole claim is that a supporter should not
+  need documentation to understand where the money goes.
+
+
+--------------------------------------------------------------------------------
+8. AFTER THE REHEARSAL, IN THIS ORDER
+--------------------------------------------------------------------------------
+  [ ] Fix whatever step 7 exposed. Interface copy first — it is the cheapest fix
+      and the highest leverage.
+  [ ] WSS on 968: probe with a real ws client. The interface polls every 12s,
+      which works but is not live. A websocket would make the feed feel current
+      without more RPC load.
+  [ ] Permit2 (0xaE85b2bc7578F8Ca9217900a2D548151F96447de on 968) to collapse
+      approve + contribute into one signature. The interface currently shows the
+      two steps honestly; do not hide them, replace them.
+  [ ] EOA paymaster (pm_isSponsorable / NodeReal MegaFuel). Sponsoring
+      createRequest and contribute removes the two biggest adoption cliffs: a
+      registrar who will not buy BOT, and a donor who will not acquire a gas
+      token first. Introduces NO custody — the paymaster pays validators, not us.
+  [ ] i18n. Copy is English-only and the audience for this is not.
+  [ ] Measure the practical eth_getLogs block-range cap on 677, for the record.
+
+
+--------------------------------------------------------------------------------
+9. BEFORE ANY REAL MONEY TOUCHES THIS  (not a checklist, a gate)
+--------------------------------------------------------------------------------
+  [ ] PROFESSIONAL AUDIT. There has been none. 66 tests and 3 solvency invariants
+      at 8,192 calls each is good engineering discipline; it is not an audit and
+      must not be presented as one.
+  [ ] LEGAL REVIEW, unexamined so far and genuinely load-bearing:
+        - student privacy law: do pseudonymised fee records constitute protected
+          education records in the target jurisdiction? Hashing the reference is
+          a mitigation, not an answer.
+        - charitable solicitation registration
+        - money transmission / VASP classification
+  [ ] Decide and WRITE DOWN who the verifiers are, what they are accountable for,
+      and what happens when one of them is unreachable. The registry's m-of-n is
+      the mechanism; it is not the governance.
+  [ ] Re-read the last section of EDUCATION_FUNDING_PROJECT_ESSAY.md, "What this
+      project is honest about not being", and check that nothing in the product
+      has quietly started claiming more than that.
+
+
+--------------------------------------------------------------------------------
+THINGS NOT TO DO
+--------------------------------------------------------------------------------
+  - Do NOT remove the chainid != 677 guard in SeedDemo.s.sol. On testnet,
+    self-approving a fictional school is how you exercise the flow. On mainnet it
+    is precisely the impersonation this project exists to prevent.
+  - Do NOT add an admin override, a pause, or a cancel to the vault. If a change
+    appears to need one, the change is wrong (R2).
+  - Do NOT unify the evidence panel and the self-asserted panel. They differ on
+    purpose and the browser test asserts their computed styles differ. Profile
+    content is marketing; the badge is evidence (D-10, D-21).
+  - Do NOT add a countdown, a "days left" badge, or scarcity copy. Urgency is the
+    fraudster's tool. The browser test greps for it (D-22).
+  - Do NOT reconstruct interface state by scanning logs. eth_getLogs is
+    restricted on the 677 public RPC; it will work on testnet and fail on mainnet
+    (C1, D-15).
+  - Do NOT let the interface fall back from one chain's addresses to another's.
+  - Do NOT put a verifier private key in .env, on testnet or anywhere.
+
+================================================================================
+END
+================================================================================

@@ -641,3 +641,162 @@ NEXT (unchanged from entry 002, plus the frontend detail)
 ================================================================================
 END ENTRY 003
 ================================================================================
+
+
+--------------------------------------------------------------------------------
+[2026-08-31] ENTRY 004 - THE INTERFACE
+--------------------------------------------------------------------------------
+
+BUILT: web/ - Next.js 16 App Router, React 19, wagmi 3, viem 2, Tailwind 4, TS.
+All seven planned pages, plus /portfolio which was not in the original plan and
+turned out to be necessary (see D-17).
+
+STATE: 49 unit tests, 12 integration tests against a live chain, 58 browser
+checks, all passing. Typecheck, lint, and a production build all clean.
+
+D-15  THE READ PATH IS ASSERTED, NOT ASSUMED.
+      C1 said the dApp must work from view calls alone. That is a promise nobody
+      can keep by intention alone - somebody eventually adds a log query because
+      it is convenient, it works perfectly on 968, and it fails on 677.
+      => The integration test wraps the viem transport in a counting proxy,
+         exercises every screen, and asserts eth_getLogs == 0. Exercising all
+         seven pages produced 28 eth_call and NOTHING ELSE. C1 is now a
+         regression test rather than a design intention.
+
+D-16  DERIVED STATE PREFERS THE CONTRACT'S CLOCK OVER THE BROWSER'S.
+      deriveRequestState() takes the vault's own `refundable` flag and recovers
+      the deadline verdict from it, rather than comparing a deadline to
+      Date.now(). block.timestamp is the only clock that decides whether a call
+      succeeds. It can differ from a visitor's through ordinary skew, a timezone
+      bug, or a local chain whose time has been advanced for testing.
+      This was not theoretical: the portfolio page shipped with the naive version
+      and the browser test caught it filing a genuinely withdrawable balance
+      under "in progress" - on the one page whose entire purpose is getting money
+      back. Both the unit test and the browser test now pin it.
+      Deadline BOUNDS in the school console come from useChainTime() (the latest
+      block timestamp) for the same reason: the vault validates against
+      block.timestamp, so offering a date the vault will reject is a bug.
+
+D-17  A CONTRIBUTOR PAGE WAS NOT OPTIONAL.
+      Not in the original page list. R3 says refunds are individual and
+      pull-based, nothing is ever swept, and no administrator distributes
+      anything. That property is only HONEST if a contributor can find what they
+      are owed without help. Read from vault.requestsByContributor(you), which
+      exists on-chain precisely because of C1. Withdrawable balances are pulled
+      to the top and totalled.
+
+D-18  STUDENT REFERENCES ARE HASHED CLIENT-SIDE, AND THAT CREATED A REAL PROBLEM
+      WE HAD TO SOLVE RATHER THAN IGNORE.
+      Consistent with SeedDemo.s.sol: keccak256 of a school-internal identifier
+      goes on-chain, never the identifier. Even a bare enrolment number is a
+      re-identification vector once it is public and permanent (R5). The hash is
+      shown before signing so nothing is concealed.
+      The cost: a registrar cannot read a request back and recall which student
+      it belongs to. Left there, schools would have quietly started putting
+      readable identifiers - or names - in the pseudonym field instead.
+      => The school console has a REFERENCE MATCHER. Type a candidate reference,
+         it is hashed locally, and the matching request is highlighted. Nothing
+         leaves the browser. Privacy that is workable is privacy that survives.
+
+D-19  APPROVAL IS FOR THE EXACT AMOUNT, NEVER UNLIMITED.
+      C3 means approve + contribute is genuinely two transactions. Shown as two
+      numbered steps rather than hidden behind one button that opens two prompts.
+      The approval is for exactly the amount typed. More friction on a second
+      contribution; considerably less standing authority granted to a contract.
+      For a product whose argument is "grant no more power than the mechanism
+      needs", unlimited-by-default would be incoherent. The panel states the
+      policy whether or not an approval is currently outstanding, because it is a
+      standing commitment and not a transient hint.
+
+D-20  UNTRUSTED URIs GO THROUGH AN ALLOWLIST, NOT A BLOCKLIST.
+      proofURI, logoURI, bannerURI, website are all supplied by the entity being
+      displayed, and then rendered as something a donor is invited to click. Only
+      http(s) and ipfs:// become live links; everything else renders as inert
+      text WITH THE REASON, because a hostile proof URI is itself a finding a
+      donor should see rather than something to silently drop. Unit tested
+      against javascript:, data:, vbscript:, file:, blob:, about:, chrome:, and
+      a malformed-ipfs traversal.
+      Images are plain <img> with an onError fallback, never next/image: keeping
+      the fetch in the visitor's browser means a school cannot make our server
+      request arbitrary URLs on its behalf.
+
+D-21  D-10 IS ENFORCED BY TEST, NOT BY COMMENT.
+      "Profile content is marketing, the badge is evidence, show them
+      differently" is the kind of rule a future redesign undoes while tidying up
+      visual inconsistency. So the browser test reads COMPUTED STYLES and asserts
+      the self-asserted panel is dashed, the evidence panel is not, and their
+      backgrounds differ. Wording alone is not sufficient and is not what is
+      checked.
+      Also enforced: if a school's self-chosen display name differs from the name
+      it was verified under, the interface says so next to it.
+
+D-22  "NO URGENCY THEATRE" IS ALSO ENFORCED BY TEST.
+      The browser test greps the rendered page for hh:mm:ss timers, "hurry",
+      "act now", "last chance", "only N days left", and flame/alarm emoji.
+      useNow() ticks once a MINUTE and is documented as display-only, which makes
+      a countdown impossible to build accidentally. Deadlines render as dates.
+
+D-23  TRANSACTIONS RETURN THE RECEIPT, NOT JUST THE HASH.
+      createRequest returns the new request id, which a transaction cannot hand
+      back to a caller. The naive fix - re-read requestCount and subtract one -
+      races with any other school creating a request in the same block. Instead
+      useTxRunner returns the mined receipt and the caller decodes RequestCreated
+      out of it. That is not a log SCAN: it is the receipt we already hold, so C1
+      does not apply and there is no race.
+
+D-24  ADDRESS RESOLUTION IS ALL-OR-NOTHING PER CHAIN.
+      contractsFor(chainId) returns null unless ALL FIVE addresses resolve.
+      A half-configured chain is the failure mode most likely to point a
+      contribution somewhere wrong. Priority: env var > chains.json > generated
+      local file. There is no cross-chain fallback anywhere, and every screen has
+      an explicit "not deployed on this network" state that says so.
+
+BUGS THE BROWSER LAYER CAUGHT THAT NOTHING ELSE WOULD HAVE
+  Recorded because they justify the cost of that layer, and because three of the
+  four are trust-model regressions rather than cosmetic faults.
+    1. approve and contribute shared one useTxRunner, so the approval succeeding
+       cleared the amount field and disabled the contribute button. A donor had
+       to retype the figure they had just committed to.
+    2. the portfolio used browser time instead of the vault's refundable flag
+       (D-16).
+    3. the school page linkified proofURI but had no explicit "re-check the proof"
+       affordance - the single most important action in the trust model was a
+       bare URL.
+    4. a dead logo URI left a torn-image glyph on an institution's page.
+
+TOOLING NOTES, so the next person does not rediscover these
+  * eslint-config-next 16 ships NATIVE flat config. The @eslint/eslintrc
+    FlatCompat bridge dies with "Converting circular structure to JSON" on the
+    plugin graph it produces. Import eslint-config-next/core-web-vitals and
+    /typescript directly.
+  * Next 16 removed the `eslint` key from next.config. Linting is a separate step.
+  * next.config needs allowedDevOrigins including "127.0.0.1", or Next silently
+    403s every /_next chunk when the browser uses the numeric loopback form
+    rather than "localhost". Symptom: the shell renders and no data ever loads.
+  * turbopack.root + outputFileTracingRoot must point at the repo root for
+    packages/config/chains.json to resolve from web/. Vitest needs the same alias
+    in its own config.
+  * React 19's compiler lint rules (react-hooks/set-state-in-effect and
+    react-hooks/purity) flagged three real anti-patterns: two mount-time effects
+    that should have been lazy state initialisers, and Date.now() during render.
+    All three were fixed rather than suppressed, and fixing the third produced
+    D-16's useChainTime().
+  * anvil predeploys nothing at the canonical Multicall3 address, so chains.json
+    leaves multicall3 null for 31337 and wagmi falls back to individual eth_calls
+    locally. Fine for development; the public chains have it.
+  * npm run devchain requires a node already running (npm run anvil). Having the
+    script spawn anvil itself was flaky and not worth the complexity.
+
+NEXT
+  1. Faucet a deployer on 968 EARLY (10 tBOT/24h cap gates everything).
+  2. Deploy all four to 968, verify on Blockscout, record the addresses in
+     packages/config/chains.json under botchainTestnet.contracts.
+  3. Run the smoke test against 968 with SMOKE_NO_RESEED=1 and a funded donor.
+  4. Live end-to-end rehearsal with distinct EOAs on separate machines - the
+     verifier flow in particular has never been exercised with keys held by
+     different people, which is the only configuration that means anything.
+  5. Then Permit2, then the paymaster.
+
+================================================================================
+END ENTRY 004
+================================================================================
