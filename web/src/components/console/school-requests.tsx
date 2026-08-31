@@ -169,7 +169,7 @@ function SchoolRequestRow({
         {state.status === "disbursed"
           ? "Paid to your wallet in full."
           : state.status === "fully-funded"
-            ? "Fully funded. Anyone can trigger the payout — including you, from the request page."
+            ? "Fully funded. Anyone can trigger the payout, including you, from the request page."
             : state.status === "closed-unmet"
               ? "Closed unmet. Contributors are withdrawing their own contributions."
               : `Closes ${formatDate(view.request.deadline)}`}

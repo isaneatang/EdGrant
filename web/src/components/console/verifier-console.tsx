@@ -35,7 +35,7 @@ import {
  *
  * The design job here is to keep a verifier inside the narrow question they are actually
  * authorised to answer: does the proof page state this exact address? Everything the console
- * shows serves that comparison — the claimed name beside the proof host, the applicant address
+ * shows serves that comparison: the claimed name beside the proof host, the applicant address
  * in full and copyable, and the proof as a link that opens in a new tab.
  *
  * What it deliberately does not offer is any field for a subjective note about whether the
@@ -60,7 +60,7 @@ export function VerifierConsole() {
     return (
       <EmptyState title="Connect a verifier wallet" icon={<SealIcon size={28} />}>
         The registry decides who is a verifier. There is no separate login, and no way for this
-        interface to grant the role — it only reflects what the contract already says.
+        interface to grant the role. It only reflects what the contract already says.
         <div className="mt-5 flex justify-center">
           <WalletButton />
         </div>
@@ -109,7 +109,7 @@ export function VerifierConsole() {
           <div className="data-row">
             <dt className="text-ink-muted">Confirmations required</dt>
             <dd className="tabular font-medium text-ink">
-              {threshold?.toString() ?? "—"} of {verifierCount?.toString() ?? "—"}
+              {threshold?.toString() ?? "-"} of {verifierCount?.toString() ?? "-"}
             </dd>
           </div>
           <div className="data-row border-b-0">
@@ -133,8 +133,8 @@ export function VerifierConsole() {
         </dl>
 
         <p className="mt-3 text-[0.75rem] leading-relaxed text-ink-muted">
-          There is no owner and no admin. Every privileged action — approving, rejecting,
-          revoking, and changing the verifier set itself — needs the same threshold of distinct
+          There is no owner and no admin. Every privileged action, including approving, rejecting,
+          revoking, and changing the verifier set itself, needs the same threshold of distinct
           verifiers. An owner able to swap verifiers could install itself as the only one, which
           would be a backdoor around the exact property this registry exists to provide.
         </p>
@@ -142,14 +142,14 @@ export function VerifierConsole() {
 
       {!iAmVerifier ? (
         <Callout tone="notice" title="This wallet cannot confirm anything">
-          You can read every application below — the queue is public, which is part of the point
-          — but the registry will reject any confirmation from a non-verifier.
+          You can read every application below. The queue is public, which is part of the point,
+          but the registry will reject any confirmation from a non-verifier.
         </Callout>
       ) : (
         <Callout tone="evidence" icon={<SealIcon size={15} />} title="The only question you are answering">
           Does the proof page state this exact wallet address, on a channel the public already
-          associates with that institution? Not whether the school seems reputable, not whether
-          the request seems reasonable. Proof-of-control, and nothing wider.
+          associates with that institution? That is the entire test. Reputation, quality, and the
+          merits of any individual request all fall outside it.
         </Callout>
       )}
 
@@ -288,7 +288,7 @@ function ApplicationRow({ app, canAct }: { app: Application; canAct: boolean }) 
             </>
           ) : (
             <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-notice">
-              Not an openable link{proof.kind === "unsafe" ? ` — ${proof.reason.toLowerCase()}` : ""}.
+              Not an openable link{proof.kind === "unsafe" ? `: ${proof.reason.toLowerCase()}` : ""}.
               A proof a donor cannot open is not a proof. Reject it.
             </p>
           )}
@@ -433,7 +433,7 @@ function RevokePanel() {
       <Callout tone="notice" className="mb-4" title="What revocation can and cannot do">
         It can stop a school being paid, and it opens immediate withdrawals for everyone who
         contributed to that school&apos;s open requests. It cannot redirect a single unit of
-        value to anyone else — `request.school` is set once at creation and no setter exists
+        value to anyone else. `request.school` is set once at creation and no setter exists
         anywhere in the vault. Revocation only ever fails in the safe direction: money returns
         to the people who sent it.
       </Callout>

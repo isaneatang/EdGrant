@@ -28,11 +28,11 @@ import { useDeployment, useSchoolPage, useSchoolIdentities } from "@/hooks/use-e
  * A school's public page. This is where the trust separation is a hard requirement, not a
  * preference, so the page is built in three explicitly labelled bands:
  *
- *   VERIFIED       registry facts — registered name, entity type, proof URI, verified date.
+ *   VERIFIED       registry facts: registered name, entity type, proof URI, verified date.
  *                  Rendered with authority, seal, solid rule, link out to the proof.
  *
  *   TRACK RECORD   computed from vault state. Factual, unfakeable, and led by
- *                  `totalDisbursed` — money that actually arrived.
+ *                  `totalDisbursed`, money that actually arrived.
  *
  *   SELF-ASSERTED  everything the school typed: display name, logo, banner, description,
  *                  website, location, every post. Dashed rules, sunken surface, softer ink,
@@ -105,7 +105,7 @@ export function SchoolProfilePage({ addressParam }: { addressParam: string }) {
             className="h-28 w-full object-cover opacity-90 sm:h-40"
             fallback={<div className="h-28 w-full bg-surface-sunken sm:h-40" />}
           />
-          <p className="absolute right-2 bottom-1.5 rounded-xs bg-canvas/80 px-1.5 py-0.5 text-[0.625rem] tracking-wide text-ink-muted uppercase backdrop-blur-sm">
+          <p className="absolute right-2 bottom-1.5 rounded-xs bg-canvas px-1.5 py-0.5 text-[0.625rem] tracking-wide text-ink-muted uppercase">
             Image supplied by the school
           </p>
         </div>
@@ -157,7 +157,7 @@ export function SchoolProfilePage({ addressParam }: { addressParam: string }) {
           </Callout>
         ) : !overview.verified ? (
           <Callout tone="fault" className="mt-6" title="Verification has been revoked">
-            The profile and past requests stay readable deliberately — you should be able to see
+            The profile and past requests stay readable on purpose, so you can see
             what was claimed next to the fact that the badge is gone. No payout is possible
             while verification is withdrawn, and contributors to any open request can withdraw
             immediately.
@@ -166,7 +166,7 @@ export function SchoolProfilePage({ addressParam }: { addressParam: string }) {
 
         <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] xl:gap-8">
           <div className="min-w-0 space-y-6">
-            {/* BAND 1 — VERIFIED */}
+            {/* BAND 1: VERIFIED */}
             <EvidencePanel
               school={school}
               verified={overview.verified}
@@ -176,7 +176,7 @@ export function SchoolProfilePage({ addressParam }: { addressParam: string }) {
               verifiedAt={overview.verifiedAt}
             />
 
-            {/* BAND 3 — SELF-ASSERTED */}
+            {/* BAND 3: SELF-ASSERTED */}
             {profile.exists ? (
               <AssertedBlock
                 label="What the school says about itself"
@@ -186,7 +186,7 @@ export function SchoolProfilePage({ addressParam }: { addressParam: string }) {
                   <p className="mb-3 rounded-sm border border-notice-rule bg-notice-soft px-3 py-2 text-[0.8125rem] leading-relaxed text-notice">
                     This school calls itself{" "}
                     <strong className="font-medium">“{assertedName}”</strong>, which is not the
-                    name it was verified under. That may be a trading name — or it may not be.
+                    name it was verified under. That may be a trading name, or it may not be.
                     Only the registered name above was checked.
                   </p>
                 ) : null}
@@ -229,7 +229,7 @@ export function SchoolProfilePage({ addressParam }: { addressParam: string }) {
                 <p className="eyebrow text-ink-muted">What the school says about itself</p>
                 <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-muted">
                   This institution has not published a profile. Nothing in the funding mechanism
-                  depends on one — the badge and the track record are what matter.
+                  depends on one. The badge and the track record are what matter.
                 </p>
               </div>
             )}
@@ -242,7 +242,7 @@ export function SchoolProfilePage({ addressParam }: { addressParam: string }) {
             </AssertedBlock>
           </div>
 
-          {/* BAND 2 — TRACK RECORD */}
+          {/* BAND 2: TRACK RECORD */}
           <div className="min-w-0 space-y-6 lg:sticky lg:top-24 lg:self-start">
             <TrackRecord stats={stats} />
             <div className="card-sunken px-4 py-3.5">

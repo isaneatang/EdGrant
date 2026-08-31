@@ -73,7 +73,7 @@ export function PostComposer() {
 
           <p className="text-[0.75rem] leading-relaxed text-ink-muted">
             Posts are permanent. You can hide one from the public feed later, but this is a public
-            chain — hiding is not deleting, and the text stays in contract state and in
+            chain. Hiding is not deleting, and the text stays in contract state and in
             transaction history forever. Write accordingly.
           </p>
 

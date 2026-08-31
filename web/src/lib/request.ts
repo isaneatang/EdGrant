@@ -209,7 +209,7 @@ export function deriveRequestState(
       status: "fully-funded",
       label: "Fully funded",
       detail:
-        "The goal is met. Anyone can now trigger the transfer to the school's verified wallet — it does not require the school or us.",
+        "The goal is met. Anyone can now trigger the transfer to the school's verified wallet. It does not require the school or us.",
       canContribute: false,
       canRelease: true,
       canRefund: false,

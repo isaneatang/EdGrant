@@ -38,7 +38,7 @@ const MESSAGES: Record<string, string | Mapper> = {
   IncorrectFee: (args) =>
     `The application fee must match exactly: ${formatEtherRaw(args[0])} was required.`,
   EmptyName: "Enter the entity's publicly known name.",
-  EmptyProof: "A public proof-of-control link is required — it is the whole basis of verification.",
+  EmptyProof: "A public proof-of-control link is required. It is the whole basis of verification.",
   InvalidEntityType: "Choose an entity type.",
   AlreadyVerified: "This wallet is already verified.",
   RequestNotPending: "That application is no longer pending.",
@@ -58,7 +58,7 @@ const MESSAGES: Record<string, string | Mapper> = {
     "Only a currently verified institution can publish. If verification was revoked, the existing profile stays readable but cannot be changed.",
   EmptyDisplayName: "Enter a display name.",
   EmptyTitle: "Enter a title.",
-  StringTooLong: (args) => `That field is too long — the contract allows ${String(args[1])} bytes.`,
+  StringTooLong: (args) => `That field is too long. The contract allows ${String(args[1])} bytes.`,
   NoProfile: "This school has not published a profile.",
   UnknownPost: "That post does not exist.",
 

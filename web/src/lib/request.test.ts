@@ -71,7 +71,7 @@ describe("deriveRequestState", () => {
     expect(state.remaining).toBe(0n);
   });
 
-  it("a disbursed request is terminal — no contribute, no release, no refund", () => {
+  it("a disbursed request is terminal: no contribute, no release, no refund", () => {
     const state = deriveRequestState(
       request({ raised: 1000n * USD, disbursed: true }),
       { schoolVerified: true, nowSeconds: NOW },

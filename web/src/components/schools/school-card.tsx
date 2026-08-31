@@ -69,7 +69,7 @@ export function SchoolCard({ overview }: { overview: SchoolOverview }) {
             Self-described · not verified
           </p>
           <p className="mt-0.5 text-[0.8125rem] text-ink-soft">
-            {assertedName || "—"}
+            {assertedName || "-"}
             {profile.location.trim() ? (
               <span className="text-ink-faint"> · {profile.location}</span>
             ) : null}

@@ -115,7 +115,7 @@ export function SiteFooter() {
           <p className="text-[0.75rem] leading-relaxed text-ink-faint">
             The vault has no administrative override, no pause, and no way to cancel a request
             or seize contributions. Verification is the one deliberately centralised part of
-            this system and it is proof-of-control, not a judgement about any institution —
+            this system and it is proof-of-control, not a judgement about any institution.
             every verified badge links to a public proof you can re-check yourself. These
             contracts have not been professionally audited.
           </p>

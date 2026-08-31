@@ -20,7 +20,7 @@ export const metadata: Metadata = {
  * The explainer.
  *
  * Written to be readable by someone deciding whether to send money, and honest about the
- * limits. The section on what this is *not* is not a disclaimer buried at the bottom — it is
+ * limits. The section on what this is *not* is not a disclaimer buried at the bottom. It is
  * a peer of the others, because a product whose entire claim is trustworthiness cannot be
  * selective about which facts it presents clearly.
  */
@@ -53,8 +53,7 @@ export default function HowItWorksPage() {
       >
         <p>
           A school states on-chain that a specific student owes a specific amount, from its own
-          verified address. The claim recorded is not &ldquo;this student deserves help&rdquo; —
-          which nobody can verify — but &ldquo;this school says this student owes this
+          verified address. The claim recorded is narrow: &ldquo;this school says this student owes this
           amount&rdquo;, made by the party that would be owed the money.
         </p>
         <p>
@@ -64,7 +63,7 @@ export default function HowItWorksPage() {
         </p>
         <p>
           The student is referenced by an identifier meaningful only inside the school&apos;s own
-          records — hashed before it is sent, never a name. A student needs no wallet, no gas,
+          records, hashed before it is sent, and never a name. A student needs no wallet, no gas,
           and no public story to be helped.
         </p>
       </Section>
@@ -92,7 +91,7 @@ export default function HowItWorksPage() {
           there is no function anywhere in the vault that can change it.
         </p>
         <p>
-          That transfer is a separate, permissionless call — anyone can trigger it. Deliberately
+          That transfer is a separate, permissionless call that anyone can trigger. Deliberately
           not automatic: auto-releasing on the goal-completing contribution would charge one
           unlucky donor for everyone else&apos;s disbursement, and would let a recipient that
           reverts on receipt break contributions for everybody.
@@ -110,8 +109,8 @@ export default function HowItWorksPage() {
           no deadline after which it stops being yours.
         </p>
         <p>
-          The vault has no administrative override, no pause function, and no way for anyone —
-          including whoever deployed it — to cancel a request, redirect funds, or seize
+          The vault has no administrative override, no pause function, and no way for anyone,
+          including whoever deployed it, to cancel a request, redirect funds, or seize
           contributions. Once deployed, the rules are what they are.
         </p>
       </Section>
@@ -138,7 +137,7 @@ export default function HowItWorksPage() {
           <strong className="font-medium text-ink">proof-of-control, not subjective
           review</strong>. A verifier is not judging whether a name sounds legitimate or an
           applicant seems trustworthy. They are checking one objective fact: has this institution
-          published this exact wallet address somewhere the public already trusts — its own
+          published this exact wallet address somewhere the public already trusts: its own
           domain, a press release, its verified account?
         </p>
         <p>
@@ -146,7 +145,7 @@ export default function HowItWorksPage() {
           <strong className="font-medium text-ink">you can re-check it yourself</strong>. Every
           verified badge in this interface links straight to it. You do not have to trust that a
           verifier did their job. It is the same logical pattern as DNS domain verification, and
-          it is not novel — just applied correctly.
+          it is not novel, just applied correctly.
         </p>
         <p>
           No single address can grant or revoke institutional identity. Every privileged action
@@ -168,8 +167,8 @@ export default function HowItWorksPage() {
           anyone.</strong>
         </p>
         <p>
-          So this interface renders it differently — quieter ink, dashed rules, a caption saying
-          nobody verified it — while verified registry facts get a seal, a solid rule, and a link
+          So this interface renders it differently, in quieter ink with dashed rules and a caption
+          saying nobody verified it, while verified registry facts get a seal, a solid rule, and a link
           out to the proof. That difference is not styling. If profile text carried the same
           authority as the badge, an impersonator&apos;s page would look identical to a real
           one, and the badge would stop meaning anything at all.
@@ -183,7 +182,7 @@ export default function HowItWorksPage() {
       <Section n="07" icon={<LedgerIcon size={18} />} title="What to weigh before you give">
         <p>
           The most useful number on any institution&apos;s page is what it has{" "}
-          <strong className="font-medium text-ink">actually been paid</strong> — money that
+          <strong className="font-medium text-ink">actually been paid</strong>. Money that
           reached the institution, derived from chain state, unfakeable by anyone. It is a much
           stronger signal than the total it has asked for, and a much stronger signal than
           anything a school could write about itself.
@@ -201,7 +200,7 @@ export default function HowItWorksPage() {
         <ul className="mt-4 space-y-3.5 text-[0.9375rem] leading-relaxed text-ink-soft">
           <li>
             <strong className="font-medium text-ink">Not fraud-proof.</strong> It makes the most
-            common failure — funds raised in a student&apos;s name never reaching the school —
+            common failure, where funds raised in a student&apos;s name never reach the school,
             structurally impossible. It does not make a corrupt verified institution impossible,
             and it does not prevent a school from attesting an inflated or fictitious balance.
             What it does is bind that behaviour permanently to a publicly-known institutional
@@ -209,14 +208,14 @@ export default function HowItWorksPage() {
           </li>
           <li>
             <strong className="font-medium text-ink">Not fully decentralised.</strong> The
-            verification layer requires trust in a human process. Everything downstream of it —
-            contribution, accounting, disbursement, refund — is trustless and requires no such
+            verification layer requires trust in a human process. Everything downstream of it,
+            meaning contribution, accounting, disbursement and refund, is trustless and requires no such
             trust.
           </li>
           <li>
             <strong className="font-medium text-ink">Not a solution to key custody.</strong> A
             school still needs a wallet and still needs to secure it. If a school loses its key,
-            there is no recovery path — and adding one would mean adding exactly the
+            there is no recovery path, and adding one would mean adding exactly the
             administrative override this design forbids.
           </li>
           <li>

@@ -27,7 +27,7 @@ export function SwitchNetworkButton({
               push({
                 tone: "fault",
                 title: `Could not switch to ${chainName(chainId)}`,
-                body: `${error.message.split("\n")[0]?.slice(0, 160)} — you may need to add this network to your wallet first.`,
+                body: `${error.message.split("\n")[0]?.slice(0, 160)}. You may need to add this network to your wallet first.`,
               }),
           },
         )

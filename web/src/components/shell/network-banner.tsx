@@ -39,7 +39,7 @@ export function NetworkBanner() {
         <span>
           EdGrant is not deployed on <strong className="font-medium">{chainName(chainId)}</strong>.
           Addresses are recorded in <code className="font-mono text-xs">packages/config/chains.json</code>{" "}
-          per chain — this interface never borrows another network&apos;s addresses.
+          per chain. This interface never borrows another network&apos;s addresses.
         </span>
         {elsewhere.length > 0 ? (
           <SwitchNetworkButton chainId={elsewhere[0]!} />

@@ -1,6 +1,6 @@
 /**
- * SELF-ASSERTED CONTENT. Everything a school types about itself — display name, logo,
- * description, website, location, every post — is checked by nobody.
+ * SELF-ASSERTED CONTENT. Everything a school types about itself, including display name,
+ * logo, description, website, location and every post, is checked by nobody.
  *
  * This wrapper exists so that content can never be rendered without its caveat. It is
  * deliberately quieter than the evidence panel: dashed rule, sunken surface, softer

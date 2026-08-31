@@ -15,8 +15,8 @@ import { CheckIcon, SpinnerIcon } from "@/components/ui/icons";
 /**
  * The contribute form: amount, approval, contribution.
  *
- * USDT on BOT Chain has no EIP-2612 `permit` — verified live, `DOMAIN_SEPARATOR()` and
- * `nonces()` both revert — so contributing genuinely takes two transactions. Rather than
+ * USDT on BOT Chain has no EIP-2612 `permit`. Verified live: `DOMAIN_SEPARATOR()` and
+ * `nonces()` both revert, so contributing genuinely takes two transactions. Rather than
  * hide that behind a single button that opens two wallet prompts, the two steps are shown
  * as two steps, numbered, with the current one highlighted. A donor who understands what
  * they are signing is the entire point of this product.
@@ -100,7 +100,7 @@ export function ContributePanel({
           Contribute
         </h2>
         <p className="tabular text-[0.75rem] text-ink-muted">
-          Balance {balance === undefined ? "—" : formatAmount(balance)}
+          Balance {balance === undefined ? "-" : formatAmount(balance)}
         </p>
       </header>
 
@@ -166,10 +166,10 @@ export function ContributePanel({
             title={`Approve the vault to move ${amount > 0n ? formatAmount(amount) : `your ${TOKEN_SYMBOL}`}`}
             body={
               amount === 0n
-                ? "Approved for exactly the amount you enter — never unlimited."
+                ? "Approved for exactly the amount you enter, never unlimited."
                 : needsApproval
                   ? "For exactly this amount, never unlimited. USDT on BOT Chain has no permit(), so this cannot be folded into a single signature."
-                  : "Already approved for this amount — and for no more than it, because the approval is never unlimited."
+                  : "Already approved for this amount and no more, because the approval is never unlimited."
             }
             state={amount === 0n ? "waiting" : needsApproval ? "current" : "done"}
           />
@@ -244,7 +244,7 @@ export function ContributePanel({
         {amount > 0n && amount >= remaining ? (
           <Callout tone="evidence" className="mt-4">
             This completes the balance. Once it lands, anyone can trigger the transfer of{" "}
-            {formatAmount(goal)} to the school — including you, from this page.
+            {formatAmount(goal)} to the school, including you, from this page.
           </Callout>
         ) : null}
 
@@ -257,7 +257,7 @@ export function ContributePanel({
         {balance !== undefined && balance === 0n ? (
           <p className="mt-4 text-[0.8125rem] leading-relaxed text-ink-muted">
             This wallet holds no {TOKEN_SYMBOL}. Balances here are denominated in {TOKEN_SYMBOL}{" "}
-            rather than the native gas token because a fee debt is a fiat-denominated amount —
+            rather than the native gas token because a fee debt is a fiat-denominated amount,
             a goal set in a volatile asset would drift away from the balance it is meant to
             settle before the deadline arrived.
           </p>

@@ -19,7 +19,7 @@ export default function SchoolAdminPage() {
         <p className="mt-4 text-[1.0625rem] leading-relaxed text-ink-soft">
           Attest what a student owes, and every contribution toward it settles into this wallet
           directly. You are the party owed the money, which is why the attestation carries weight
-          — and why it is permanently attached to your verified institutional identity.
+          and why it is permanently attached to your verified institutional identity.
         </p>
       </header>
 

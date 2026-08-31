@@ -142,9 +142,9 @@ describe("dates", () => {
   });
 
   it("renders a missing or zero timestamp as an em dash, not 1970", () => {
-    expect(formatDate(0n)).toBe("—");
-    expect(formatDate(undefined)).toBe("—");
-    expect(formatDateTime(0n)).toBe("—");
+    expect(formatDate(0n)).toBe("-");
+    expect(formatDate(undefined)).toBe("-");
+    expect(formatDateTime(0n)).toBe("-");
   });
 
   it("describes a deadline as a fact, in the right tense", () => {
@@ -166,7 +166,7 @@ describe("dates", () => {
 });
 
 describe("formatCoarseInterval", () => {
-  it("is coarse on purpose — never a countdown", () => {
+  it("is coarse on purpose, never a countdown", () => {
     expect(formatCoarseInterval(30)).toBe("under a minute");
     expect(formatCoarseInterval(600)).toBe("10 minutes");
     expect(formatCoarseInterval(3600)).toBe("about an hour");

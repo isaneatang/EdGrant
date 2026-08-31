@@ -85,7 +85,7 @@ export function PostList({
       </ol>
       {showVisibility ? (
         <p className="text-[0.75rem] leading-relaxed text-ink-muted">
-          Hiding a post removes it from the public feed. It does not delete it — this is a
+          Hiding a post removes it from the public feed. It does not delete it. This is a
           public chain, and the content remains in contract state and in transaction history
           permanently. The contract says so rather than offering a delete button that does not
           delete.

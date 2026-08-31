@@ -8,11 +8,11 @@ import { safeImageSrc } from "@/lib/uri";
  *
  * Three things this handles that a bare <img> does not:
  *
- *   1. The URI is untrusted, so it goes through the same allowlist as every other link —
+ *   1. The URI is untrusted, so it goes through the same allowlist as every other link.
  *      only http(s) and ipfs:// resolve to anything.
  *   2. It is fetched by the visitor's browser, never proxied by our server, so a school
  *      cannot make us request arbitrary URLs on its behalf.
- *   3. It will sometimes fail — a dead IPFS pin, a moved file, a host that refuses
+ *   3. It will sometimes fail: a dead IPFS pin, a moved file, a host that refuses
  *      cross-origin reads. A broken logo must degrade to something dignified rather than
  *      leaving a torn-image glyph on an institution's page.
  */
@@ -56,7 +56,7 @@ export function InstitutionMonogram({
   const words = name.trim().split(/\s+/).filter(Boolean);
   const initials =
     words.length === 0
-      ? "—"
+      ? "-"
       : words
           .slice(0, 2)
           .map((w) => w[0]?.toUpperCase() ?? "")

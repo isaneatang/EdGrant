@@ -8,7 +8,7 @@ import { classifyUri } from "@/lib/uri";
  * VERIFIED FACTS. Everything in this panel comes from VerifiedEntityRegistry, which is
  * the only place in the system where anything has been checked by anyone.
  *
- * Rendered with authority — solid rule, seal, full contrast, structured like a record —
+ * Rendered with authority: solid rule, seal, full contrast, structured like a record.
  * precisely so that the self-asserted panel next to it can be rendered without it.
  * Profile content is marketing. The badge is evidence. They must never look alike, or
  * an impersonator's page looks exactly like a real one.
@@ -41,14 +41,14 @@ export function EvidencePanel({
           {verified ? <SealIcon size={15} /> : <SealBrokenIcon size={15} />}
         </span>
         <h2 id="evidence-heading" className="eyebrow font-sans! text-ink">
-          {verified ? "Verified — checked, and re-checkable by you" : "Verification withdrawn"}
+          {verified ? "Verified, and re-checkable by you" : "Verification withdrawn"}
         </h2>
       </header>
 
       <dl className="px-4 py-1 sm:px-5">
         <div className="data-row">
           <dt className="shrink-0 text-ink-muted">Registered name</dt>
-          <dd className="text-right font-medium text-ink">{entityName || "—"}</dd>
+          <dd className="text-right font-medium text-ink">{entityName || "-"}</dd>
         </div>
         <div className="data-row">
           <dt className="shrink-0 text-ink-muted">Entity type</dt>
@@ -85,7 +85,7 @@ export function EvidencePanel({
               Verification is proof-of-control, not a judgement about this institution. It
               means the institution published this exact wallet address at{" "}
               <span className="font-medium text-ink-soft">{proof.host}</span>. Open it and
-              confirm the address matches — you do not have to take our word for it.
+              confirm the address matches. You do not have to take our word for it.
             </p>
             {/* An explicit affordance, not just a linkified URL. The whole trust model
                 rests on a reader being able to check this, so it gets a button. */}
@@ -103,7 +103,7 @@ export function EvidencePanel({
         ) : (
           <>
             <p className="mt-1.5 font-mono text-[0.8125rem] break-all text-ink-soft">
-              {proofURI || "—"}
+              {proofURI || "-"}
             </p>
             <p className="mt-2 text-[0.8125rem] leading-relaxed text-notice">
               This proof reference is not a link we will open for you

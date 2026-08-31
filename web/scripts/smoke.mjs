@@ -692,8 +692,13 @@ async function runSchoolConsole(browser) {
   await check("attesting a fee balance works end to end", async () => {
     await page.locator('input[placeholder="450.00"]').first().fill("42.50");
 
-    const closes = new Date(Date.now() + 20 * 86_400_000).toISOString().slice(0, 10);
-    await page.locator('input[type="date"]').first().fill(closes);
+    // The duration presets are the primary path, because input[type=date] renders
+    // unreliably inside a wallet's in-app browser. Exercise what a school actually taps.
+    await page.locator('button:has-text("1 month")').first().click();
+    const closesText = await page.locator("text=/^Closes /").first().innerText();
+    if (!/^Closes \d/.test(closesText)) {
+      throw new Error(`preset did not resolve to a date: ${closesText}`);
+    }
 
     await page.locator('input[placeholder="A.M."]').first().fill("S.K.");
     await page

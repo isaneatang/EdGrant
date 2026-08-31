@@ -35,18 +35,24 @@ export function WalletButton({ compact = false }: { compact?: boolean }) {
     query: { enabled: Boolean(address), refetchInterval: 30_000 },
   });
 
+  // `pointerdown`, not `mousedown`. A wallet's in-app browser is a mobile webview, where
+  // mouse events are synthesised from touches inconsistently: some webviews emit them late,
+  // some emit them at coordinates that fail the contains() test, and some coalesce them with
+  // the tap that opened the menu so it shuts in the same gesture. `pointerdown` is the one
+  // event that fires identically for touch, pen, and mouse, so the menu behaves the same in a
+  // wallet browser as in a desktop one.
   useEffect(() => {
     if (!open) return;
-    const onDown = (event: MouseEvent) => {
+    const onDown = (event: PointerEvent) => {
       if (!wrapRef.current?.contains(event.target as Node)) setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
-    document.addEventListener("mousedown", onDown);
+    document.addEventListener("pointerdown", onDown);
     document.addEventListener("keydown", onKey);
     return () => {
-      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("pointerdown", onDown);
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
@@ -197,7 +203,7 @@ export function WalletButton({ compact = false }: { compact?: boolean }) {
               <dd className="tabular text-ink">
                 {native
                   ? `${Number(formatUnits(native.value, native.decimals)).toLocaleString("en-GB", { maximumFractionDigits: 4 })} ${native.symbol}`
-                  : "—"}
+                  : "-"}
               </dd>
             </div>
           </dl>

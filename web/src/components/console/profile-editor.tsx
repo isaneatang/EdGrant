@@ -75,7 +75,7 @@ export function ProfileEditor() {
       description="Stored entirely on-chain. Everything here is your own words."
     >
       <Callout tone="notice" className="mb-5" title="This content is marketing, not evidence">
-        Nobody verifies any of it — not the name, not the description, not the logo. The
+        Nobody verifies any of it. Not the name, not the description, not the logo. The
         interface therefore renders it visibly more quietly than your verified badge, inside a
         dashed panel captioned &ldquo;verified by nobody&rdquo;. That is intentional. If profile
         text carried the same authority as the badge, an impersonator&apos;s page would look

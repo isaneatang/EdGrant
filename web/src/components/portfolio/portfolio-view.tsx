@@ -140,7 +140,7 @@ export function PortfolioView() {
           </h2>
           <Callout tone="notice" className="mt-4">
             Nothing here was sent to a school. Each withdrawal returns exactly what you put in,
-            and only you can trigger it — there is no administrator who could do it for you, and
+            and only you can trigger it. There is no administrator who could do it for you, and
             no deadline after which it stops being yours.
           </Callout>
           <ul className="mt-4 space-y-4">

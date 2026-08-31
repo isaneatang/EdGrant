@@ -17,7 +17,7 @@ export function SiteHeader() {
   return (
     <>
       <header
-        className="sticky top-0 z-40 border-b border-rule bg-canvas/92 backdrop-blur-md"
+        className="sticky top-0 z-40 border-b border-rule bg-canvas"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
         <div className="container-page flex h-14 items-center gap-3 sm:h-16">

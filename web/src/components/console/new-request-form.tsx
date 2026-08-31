@@ -25,6 +25,15 @@ import { LockIcon, SpinnerIcon } from "@/components/ui/icons";
  * to a school-internal identifier, never the identifier itself and never a name. The hash is
  * shown before signing so nothing about that is hidden.
  */
+/** Within the vault's MIN_DURATION (1 day) and MAX_DURATION (365 days). */
+const DURATION_PRESETS = [
+  { days: 14, label: "2 weeks" },
+  { days: 30, label: "1 month" },
+  { days: 60, label: "2 months" },
+  { days: 90, label: "3 months" },
+  { days: 180, label: "6 months" },
+] as const;
+
 export function NewRequestForm({ school }: { school: `0x${string}` }) {
   const { chainId } = useDeployment();
   const contracts = contractsFor(chainId);
@@ -77,7 +86,7 @@ export function NewRequestForm({ school }: { school: `0x${string}` }) {
     >
       <Callout tone="evidence" icon={<LockIcon size={15} />} className="mb-5">
         You are recording that this student owes your institution this amount. If the goal is
-        met, the vault transfers it to <strong className="font-medium">this address</strong> —
+        met, the vault transfers it to <strong className="font-medium">this address</strong>,
         fixed now, with no function anywhere that can change it later. If it is not met by the
         closing date, each contributor withdraws their own money and you receive nothing. You
         cannot cancel a request once it exists, and neither can we.
@@ -86,7 +95,7 @@ export function NewRequestForm({ school }: { school: `0x${string}` }) {
       <div className="space-y-4">
         <TextField
           label="Student reference (internal)"
-          hint="Your own identifier — an enrolment or invoice number. It is hashed in your browser before it is sent, so the identifier itself never goes on-chain. Never enter a name."
+          hint="Your own identifier, such as an enrolment or invoice number. It is hashed in your browser before it is sent, so the identifier itself never goes on-chain. Never enter a name."
           value={reference}
           onChange={setReference}
           placeholder="RCC-2026-0417"
@@ -126,36 +135,82 @@ export function NewRequestForm({ school }: { school: `0x${string}` }) {
           />
 
           <div>
-            <label htmlFor="close-date" className="label-text">
-              Closing date <span className="ml-1 text-fault">*</span>
-            </label>
-            <input
-              id="close-date"
-              type="date"
-              value={closeDate}
-              min={minDate}
-              max={maxDate}
-              onChange={(event) => setCloseDate(event.target.value)}
-              disabled={tx.isBusy}
-              aria-invalid={Boolean(dateError)}
-              className={`field ${dateError ? "field-invalid" : ""}`}
-            />
+            <span className="label-text">
+              Stays open for <span className="ml-1 text-fault">*</span>
+            </span>
+
+            {/*
+              Buttons first, calendar second, and deliberately in that order.
+
+              `input[type=date]` is rendered by the browser's own widget, and a wallet's
+              in-app browser is a mobile webview where that widget is unreliable: some
+              show a plain text box, some open nothing at all when tapped. A school using
+              the console from inside their wallet would simply be unable to set a date.
+              Buttons are buttons everywhere, so the primary path never depends on a
+              widget we do not control. The exact-date field stays for anyone whose
+              browser handles it, as an addition rather than the only way through.
+            */}
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {DURATION_PRESETS.map((preset) => {
+                const target = now > 0 ? toDateInput(now + preset.days * 86_400) : "";
+                const active = closeDate !== "" && closeDate === target;
+                return (
+                  <button
+                    key={preset.days}
+                    type="button"
+                    disabled={tx.isBusy || now === 0}
+                    aria-pressed={active}
+                    onClick={() => setCloseDate(target)}
+                    className={`btn btn-sm ${active ? "btn-primary" : "btn-secondary"}`}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
+
             {dateError ? (
-              <p role="alert" className="mt-1.5 text-[0.75rem] text-fault">
+              <p role="alert" className="mt-2 text-[0.75rem] text-fault">
                 {dateError}
               </p>
+            ) : deadlineCheck.ok ? (
+              <p className="mt-2 text-[0.75rem] leading-relaxed text-ink-muted">
+                Closes {formatDate(BigInt(deadlineCheck.timestamp))}, at 23:59 UTC.
+              </p>
             ) : (
-              <p className="mt-1.5 text-[0.75rem] leading-relaxed text-ink-muted">
-                Between one day and one year out. Interpreted as 23:59 UTC on that day.
+              <p className="mt-2 text-[0.75rem] leading-relaxed text-ink-muted">
+                Choose how long contributions stay open.
               </p>
             )}
+
+            <details className="mt-2">
+              <summary className="cursor-pointer text-[0.75rem] text-ink-muted hover:text-ink">
+                Set an exact date instead
+              </summary>
+              <input
+                id="close-date"
+                type="date"
+                aria-label="Exact closing date"
+                value={closeDate}
+                min={minDate}
+                max={maxDate}
+                onChange={(event) => setCloseDate(event.target.value)}
+                disabled={tx.isBusy}
+                aria-invalid={Boolean(dateError)}
+                className={`field mt-2 ${dateError ? "field-invalid" : ""}`}
+              />
+              <p className="mt-1.5 text-[0.75rem] leading-relaxed text-ink-muted">
+                Between one day and one year out. If your browser does not show a calendar
+                here, use the options above.
+              </p>
+            </details>
           </div>
         </div>
 
         <div className="border-t border-rule pt-4">
           <p className="text-[0.8125rem] font-medium text-ink">
-            Optional public context{" "}
-            <span className="font-normal text-ink-muted">— entirely optional</span>
+            Public context{" "}
+            <span className="font-normal text-ink-muted">(optional)</span>
           </p>
           <p className="mt-1 mb-3 text-[0.75rem] leading-relaxed text-ink-muted">
             You write this on the student&apos;s behalf so they never need a wallet, gas, or an
@@ -217,7 +272,7 @@ export function NewRequestForm({ school }: { school: `0x${string}` }) {
             if (!receipt) return;
 
             // `createRequest` returns the new id, which a transaction cannot hand back to
-            // the caller — so read it out of the event in our own receipt. This is not a
+            // the caller, so read it out of the event in our own receipt. This is not a
             // log *scan*: it is the receipt we already hold, so the mainnet eth_getLogs
             // restriction does not apply and there is no race with other writers.
             const newId = requestIdFromReceipt(receipt.logs, contracts.vault);

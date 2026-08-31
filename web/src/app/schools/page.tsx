@@ -22,8 +22,8 @@ export default function SchoolsPage() {
         </p>
         <p className="mt-3 text-[0.875rem] leading-relaxed text-ink-muted">
           Verification says one narrow thing: this address is controlled by the named
-          institution. It is not an endorsement, a quality rating, or a judgement about how any
-          school spends money. The number worth weighing is what each has actually been paid.
+          institution. Verification carries no opinion on quality, conduct, or how a school
+          spends money. The number worth weighing is what each has actually been paid.
         </p>
       </header>
 

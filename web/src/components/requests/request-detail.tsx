@@ -193,7 +193,7 @@ export function RequestDetail({ requestId }: { requestId: bigint | null }) {
 
           {!summary.schoolVerified ? (
             <Callout tone="fault" title="This school's verification has been revoked">
-              The profile and this request stay readable on purpose — you should be able to see
+              The profile and this request stay readable on purpose, so you can see
               what was claimed next to the fact that the badge is gone. No payout is possible
               and every contributor can withdraw now. Revocation can only ever return money to
               the people who sent it; it can never redirect it.
@@ -217,7 +217,7 @@ export function RequestDetail({ requestId }: { requestId: bigint | null }) {
             <div className="asserted-panel px-4 py-4 sm:px-5">
               <p className="eyebrow text-ink-muted">About this student</p>
               <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-muted">
-                Nothing was shared. The mechanism works fully without it — a student is never
+                Nothing was shared. The mechanism works fully without it. A student is never
                 required to hold a wallet, expose an address, or publish a personal story in
                 order to be helped.
               </p>
@@ -279,7 +279,7 @@ export function RequestDetail({ requestId }: { requestId: bigint | null }) {
                 </p>
                 <p className="mt-1.5 text-[0.875rem] leading-relaxed text-ink-soft">
                   transferred to the school&apos;s verified wallet. This is money that actually
-                  arrived at the institution — not money that was merely asked for.
+                  arrived at the institution, not money that was merely asked for.
                 </p>
                 <div className="mt-3">
                   <AddressDisplay

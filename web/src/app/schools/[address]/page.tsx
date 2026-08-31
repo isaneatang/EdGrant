@@ -4,7 +4,7 @@ import { SchoolProfilePage } from "@/components/schools/school-profile-page";
 export const metadata: Metadata = {
   title: "Institution",
   description:
-    "A verified institution's page: what has been verified, what it has actually been paid, and — kept clearly separate — what it says about itself.",
+    "A verified institution's page: what has been verified, what it has actually been paid, and, kept clearly separate, what it says about itself.",
 };
 
 export default async function SchoolPage({ params }: { params: Promise<{ address: string }> }) {

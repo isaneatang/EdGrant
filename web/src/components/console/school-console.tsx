@@ -34,7 +34,7 @@ const TABS: { id: Tab; label: string }[] = [
  *
  * A revoked school lands back in the application state, because every write on both the
  * profile contract and the vault is gated on current verification. Its existing profile and
- * requests stay readable to the public — deliberately, so a donor can see what was claimed
+ * requests stay readable to the public on purpose, so a donor can see what was claimed
  * next to the fact that the badge is gone.
  */
 export function SchoolConsole() {
@@ -47,7 +47,7 @@ export function SchoolConsole() {
     return (
       <EmptyState title="Connect your institution's wallet" icon={<BuildingIcon size={28} />}>
         This console reflects what the registry says about the connected address. There is no
-        account to create and no password — the wallet is the identity.
+        account to create and no password. The wallet is the identity.
         <div className="mt-5 flex justify-center">
           <WalletButton />
         </div>
@@ -94,7 +94,7 @@ export function SchoolConsole() {
           ) : (
             <p className="mt-3 text-[0.8125rem] leading-relaxed text-ink-muted">
               Not verified. Only a currently-verified institution can publish a profile or
-              attest a fee balance — that gate is what makes the badge mean anything.
+              attest a fee balance. That gate is what makes the badge mean anything.
             </p>
           )}
         </div>

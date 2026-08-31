@@ -43,74 +43,99 @@
   --radius-md: 6px;
   --radius-lg: 10px;
 
-  /* ---- Palette. Semantic tokens only; components never name a raw colour. ---- */
-  --color-canvas: #fbfbf9;
-  --color-surface: #ffffff;
-  --color-surface-sunken: #f4f4f1;
-  --color-surface-raised: #ffffff;
+  /* ---- Palette. Semantic tokens only; components never name a raw colour. ----
 
-  --color-ink: #14191f;
-  --color-ink-soft: #3d4753;
-  --color-ink-muted: #6a7480;
-  --color-ink-faint: #939ca6;
+     Surfaces are separated by a real step, not a hairline. The previous canvas
+     and surface differed by about one percent, which reads as one flat sheet and
+     makes every card boundary depend on its border alone. Cards should be
+     legible as objects before you notice their rules.
 
-  --color-rule: #e2e2dd;
-  --color-rule-strong: #cfd0c9;
+     Brand green carries primary action AND "delivered". That is deliberate:
+     money reaching the school is the success state of the entire product, so
+     the brand colour and the success colour being the same thing is honest
+     rather than a collision. Evidence stays blue precisely so a verified badge
+     can never be confused with a payout.                                      */
+
+  --color-canvas: #eaf0eb;
+  --color-surface: #f8fbf8;
+  --color-surface-sunken: #dde7df;
+  --color-surface-raised: #fcfdfc;
+
+  --color-ink: #0c1710;
+  --color-ink-soft: #2f4438;
+  --color-ink-muted: #576b5e;
+  --color-ink-faint: #7f9287;
+
+  --color-rule: #c9d8cd;
+  --color-rule-strong: #a2b8a9;
+
+  /* Brand. Primary actions, focus, and the product's identity. */
+  --color-brand: #0d5132;
+  --color-brand-hover: #0a3f27;
+  --color-brand-soft: #d9ecdf;
+  --color-brand-rule: #8dc4a2;
+  --color-brand-on: #f2f9f4;
 
   /* Evidence. Used for the verified badge and nothing decorative. */
-  --color-evidence: #16456d;
-  --color-evidence-soft: #eaf0f6;
-  --color-evidence-rule: #b9cbdd;
+  --color-evidence: #12467d;
+  --color-evidence-soft: #e3edf8;
+  --color-evidence-rule: #9dc0e2;
 
   /* Delivered — money that actually arrived. The strongest honest signal. */
-  --color-delivered: #1c5a3e;
-  --color-delivered-soft: #e8f1ec;
-  --color-delivered-rule: #b4d0c0;
+  --color-delivered: #0d5132;
+  --color-delivered-soft: #d9ecdf;
+  --color-delivered-rule: #8dc4a2;
 
   /* Attention. Neutral information, never alarm. */
   --color-notice: #7a5410;
-  --color-notice-soft: #f7f1e3;
-  --color-notice-rule: #ddd0b0;
+  --color-notice-soft: #f8f0dd;
+  --color-notice-rule: #d9c79f;
 
   /* Fault. Reserved for revocation and failed transactions. */
-  --color-fault: #8b2f26;
-  --color-fault-soft: #f8ecea;
-  --color-fault-rule: #e0bdb8;
+  --color-fault: #94251b;
+  --color-fault-soft: #fae8e6;
+  --color-fault-rule: #dfb0a9;
 
-  --color-focus: #16456d;
+  --color-focus: #0d5132;
 }
 
 .dark {
-  --color-canvas: #0f1216;
-  --color-surface: #16191e;
-  --color-surface-sunken: #12151a;
-  --color-surface-raised: #1b1f25;
+  --color-canvas: #080f0b;
+  --color-surface: #131e17;
+  --color-surface-sunken: #0d1712;
+  --color-surface-raised: #1a271f;
 
-  --color-ink: #e9eae6;
-  --color-ink-soft: #bfc5cc;
-  --color-ink-muted: #98a0aa;
-  --color-ink-faint: #6f7883;
+  --color-ink: #e7efe9;
+  --color-ink-soft: #b9cbbf;
+  --color-ink-muted: #8ba295; 
+  --color-ink-faint: #647a6d;
 
-  --color-rule: #262b32;
-  --color-rule-strong: #363c45;
+  --color-rule: #23332a;
+  --color-rule-strong: #384c3f;
 
-  --color-evidence: #8db9e0;
-  --color-evidence-soft: #15212c;
-  --color-evidence-rule: #2c4258;
+  --color-brand: #46b87c;
+  --color-brand-hover: #5cc98d;
+  --color-brand-soft: #0e2417;
+  --color-brand-rule: #235138;
+  --color-brand-on: #04140b;
 
-  --color-delivered: #79c49c;
-  --color-delivered-soft: #12211a;
-  --color-delivered-rule: #2a4736;
+  --color-evidence: #86bde8;
+  --color-evidence-soft: #101f2c;
+  --color-evidence-rule: #294159;
 
-  --color-notice: #d8b877;
-  --color-notice-soft: #221d13;
+  --color-delivered: #46b87c;
+  --color-delivered-soft: #0e2417;
+  --color-delivered-rule: #235138;
+
+  --color-notice: #dcbb78;
+  --color-notice-soft: #211c12;
   --color-notice-rule: #453a24;
 
-  --color-fault: #e29a91;
-  --color-fault-soft: #241614;
-  --color-fault-rule: #4a2b26;
+  --color-fault: #e79b91;
+  --color-fault-soft: #241513;
+  --color-fault-rule: #4d2b26;
 
-  --color-focus: #8db9e0;
+  --color-focus: #46b87c;
 }
 
 /* ==========================================================================
@@ -265,10 +290,10 @@
 }
 
 @utility btn-primary {
-  background-color: var(--color-ink);
-  color: var(--color-canvas);
+  background-color: var(--color-brand);
+  color: var(--color-brand-on);
   &:hover:not(:disabled) {
-    background-color: var(--color-ink-soft);
+    background-color: var(--color-brand-hover);
   }
   &:disabled {
     opacity: 0.4;
@@ -397,13 +422,17 @@
   color: var(--color-fault);
 }
 
-/* --- Evidence block: verified, re-checkable, rendered with authority. --- */
+/* --- Evidence block: verified, re-checkable, rendered with authority.
+
+       The distinction from `asserted-panel` below is load-bearing and asserted by the
+       browser suite, so it has to be carried by something. It is carried by a solid
+       evidence-coloured border on all four sides plus a tinted ground, rather than by a
+       coloured stripe down the left edge. The stripe reads as a generic component-library
+       default; a fully bounded, tinted block reads as a record, which is the point.      --- */
 @utility evidence-panel {
-  border: 1px solid var(--color-evidence-rule);
-  border-left-width: 3px;
-  border-left-color: var(--color-evidence);
+  border: 1.5px solid var(--color-evidence-rule);
   border-radius: var(--radius-md);
-  background-color: var(--color-surface);
+  background-color: var(--color-evidence-soft);
 }
 
 /* --- Self-asserted block: the school's own words, verified by nobody.

@@ -15,7 +15,7 @@ import { AddressDisplay } from "@/components/ui/address-display";
  *
  * That is a deliberate design choice worth surfacing rather than hiding: it means the
  * payout does not depend on the school acting, and it does not depend on us existing. It
- * is also why the goal-completing contribution does not auto-release — that would charge
+ * is also why the goal-completing contribution does not auto-release, because that would charge
  * one unlucky donor for everybody else's disbursement, and would let a recipient that
  * reverts on receipt break contributions for everyone.
  */
@@ -46,7 +46,7 @@ export function ReleaseAction({
       </header>
       <div className="px-4 py-4 sm:px-5">
         <p className="text-[0.875rem] leading-relaxed text-ink-soft">
-          This balance is fully funded. The transfer is a separate, permissionless call —{" "}
+          This balance is fully funded. The transfer is a separate, permissionless call.{" "}
           <strong className="font-medium text-ink">anyone</strong> can make it, including you.
           It does not need the school&apos;s cooperation and it does not need ours.
         </p>
@@ -114,7 +114,7 @@ export function ReleaseAction({
 
 /**
  * Refunds are individual and pull-based. Each contributor withdraws exactly what they put
- * in — there is no pooled refund, nothing is ever swept, and no administrator is involved.
+ * in. There is no pooled refund, nothing is ever swept, and no administrator is involved.
  */
 export function RefundAction({
   requestId,
@@ -143,7 +143,7 @@ export function RefundAction({
       <div className="px-4 py-4 sm:px-5">
         <p className="text-[0.875rem] leading-relaxed text-ink-soft">
           {reason === "verification-withdrawn"
-            ? "This school's verification has been revoked, so the vault can no longer pay it. Withdrawals are open immediately — you do not have to wait for the deadline."
+            ? "This school's verification has been revoked, so the vault can no longer pay it. Withdrawals are open immediately and you do not have to wait for the deadline."
             : "The deadline passed without the goal being met. Nothing was sent to the school."}{" "}
           Each contributor withdraws their own contribution. There is no pooled refund to wait
           for, and no unclaimed balance accumulates anywhere.
@@ -152,7 +152,7 @@ export function RefundAction({
         {isConnected ? (
           nothingToClaim ? (
             <p className="mt-4 rounded-sm border border-rule bg-surface-sunken px-3 py-2.5 text-[0.8125rem] text-ink-muted">
-              This wallet has nothing to withdraw from this balance — either it did not
+              This wallet has nothing to withdraw from this balance. Either it did not
               contribute, or it has already withdrawn.
             </p>
           ) : (
@@ -160,7 +160,7 @@ export function RefundAction({
               <div className="mt-4 rounded-sm border border-rule bg-surface-sunken px-3 py-2.5">
                 <p className="eyebrow text-ink-faint">Your contribution</p>
                 <p className="tabular mt-0.5 font-serif text-lg font-semibold text-ink">
-                  {mine === undefined ? "—" : formatAmount(mine)}
+                  {mine === undefined ? "-" : formatAmount(mine)}
                 </p>
               </div>
               <button

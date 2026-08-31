@@ -4,7 +4,7 @@ import { formatAmount, formatDate } from "@/lib/format";
 
 /**
  * WHERE THE MONEY GOES. Shown on the contribution screen, above the fold, before the
- * donor signs anything — never buried in terms.
+ * donor signs anything, never buried in terms.
  *
  * The single structural claim of this product is that the money cannot route through
  * the student, so the interface states the destination as an address the donor can read
@@ -75,7 +75,7 @@ export function DisbursementNotice({
           </div>
           <p className="mt-2.5 text-[0.8125rem] leading-relaxed text-ink-muted">
             This address was fixed when the request was created and there is no function
-            anywhere in the vault that can change it — not for the school, not for a
+            anywhere in the vault that can change it. Not for the school, not for a
             verifier, not for us. The student has no ability to receive, redirect, or spend
             any of it.
           </p>
@@ -113,7 +113,7 @@ export function OutcomeTerms({
             If {formatAmount(goal)} is reached by {formatDate(deadline)}
           </dt>
           <dd className="mt-1 text-[0.8125rem] leading-relaxed text-ink-muted">
-            Anyone — you, another contributor, a stranger — can trigger the transfer. The
+            Anyone can trigger the transfer: you, another contributor, or a stranger. The
             full amount goes to {school}. It does not need us and it does not need the
             school to cooperate. The contract re-checks the verification at that moment, so
             a school whose badge has been revoked cannot be paid.
@@ -135,7 +135,7 @@ export function OutcomeTerms({
           <dd className="mt-1 text-[0.8125rem] leading-relaxed text-ink-muted">
             Payout becomes impossible immediately and you can withdraw straight away
             without waiting for the deadline. Revocation can only ever return money to the
-            people who sent it — it can never redirect it to anyone else.
+            people who sent it. It can never redirect it to anyone else.
           </dd>
         </div>
       </dl>

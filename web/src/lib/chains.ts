@@ -1,4 +1,4 @@
-import { defineChain } from "viem";
+import { defineChain, type Chain } from "viem";
 import raw from "@config/chains.json";
 
 /**
@@ -49,14 +49,44 @@ export const botchainMainnet = toViemChain(networks.mainnet);
 export const botchainTestnet = toViemChain(networks.testnet);
 export const localAnvil = toViemChain(networks.local);
 
-/**
- * Ordered most-likely-first. Local sits first because nothing is deployed to the
- * public networks yet; once it is, move the intended default to the front or set
- * NEXT_PUBLIC_DEFAULT_CHAIN_ID.
- */
-export const supportedChains = [localAnvil, botchainTestnet, botchainMainnet] as const;
+/** Every chain this build knows about, whether or not it is currently offered. */
+type KnownChain = typeof botchainTestnet | typeof botchainMainnet | typeof localAnvil;
 
-export type SupportedChainId = (typeof supportedChains)[number]["id"];
+export type SupportedChainId = KnownChain["id"];
+
+/**
+ * The local development chain is present ONLY when a local deployment has been
+ * configured, which `npm run devchain` does by writing
+ * NEXT_PUBLIC_DEPLOYMENT_CHAIN_ID=31337 into web/.env.local.
+ *
+ * A deployed build has no such value, so anvil is absent from the network list, from
+ * the wallet's switch targets, and from every message that names a network — including
+ * error states, which is where a development chain would otherwise leak into public
+ * view. A throwaway chain is a developer's tool and has no business appearing in front
+ * of a donor.
+ */
+const localChainEnabled =
+  Number(process.env.NEXT_PUBLIC_DEPLOYMENT_CHAIN_ID ?? "") === localAnvil.id;
+
+const enabledChains: Chain[] = localChainEnabled
+  ? [botchainTestnet, botchainMainnet, localAnvil]
+  : [botchainTestnet, botchainMainnet];
+
+const envDefaultId = Number(process.env.NEXT_PUBLIC_DEFAULT_CHAIN_ID ?? "");
+const defaultChain = enabledChains.find((c) => c.id === envDefaultId) ?? enabledChains[0]!;
+
+/**
+ * The default chain is FIRST, not merely named.
+ *
+ * wagmi reads `config.chains[0]` whenever no wallet is connected, which is most
+ * visitors most of the time. A list whose first entry is not the intended default
+ * silently reads the wrong network for them — the screen renders, the calls succeed,
+ * and it simply shows an empty feed from a chain nobody meant to query.
+ */
+export const supportedChains: readonly [Chain, ...Chain[]] = [
+  defaultChain,
+  ...enabledChains.filter((c) => c.id !== defaultChain.id),
+];
 
 export const chainMeta: Record<number, RawNetwork> = {
   [networks.local.chainId]: networks.local,
@@ -64,11 +94,7 @@ export const chainMeta: Record<number, RawNetwork> = {
   [networks.mainnet.chainId]: networks.mainnet,
 };
 
-const envDefault = Number(process.env.NEXT_PUBLIC_DEFAULT_CHAIN_ID ?? "");
-
-export const defaultChainId: SupportedChainId = supportedChains.some((c) => c.id === envDefault)
-  ? (envDefault as SupportedChainId)
-  : localAnvil.id;
+export const defaultChainId = defaultChain.id as SupportedChainId;
 
 export function isSupportedChainId(id: number | undefined): id is SupportedChainId {
   return id !== undefined && supportedChains.some((c) => c.id === id);

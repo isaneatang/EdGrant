@@ -23,7 +23,7 @@ export default function VerifierPage() {
           institution, and nothing here invites one.
         </p>
         <p className="mt-3 text-[0.875rem] leading-relaxed text-ink-muted">
-          The queue below is readable by anyone. That is deliberate — a verification process
+          The queue below is readable by anyone. That is deliberate, because a verification process
           nobody can inspect would be worth about as much as no process at all.
         </p>
       </header>

@@ -29,11 +29,11 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "EdGrant — verified education funding",
+    default: "EdGrant: verified education funding",
     template: "%s · EdGrant",
   },
   description:
-    "A verified school attests that a student owes fees. Supporters contribute. When the goal is met the contract pays the school's verified wallet directly — the student never has custody of the money.",
+    "A verified school attests that a student owes fees. Supporters contribute. When the goal is met the contract pays the school's verified wallet directly. The student never has custody of the money.",
   applicationName: "EdGrant",
   robots: { index: true, follow: true },
 };

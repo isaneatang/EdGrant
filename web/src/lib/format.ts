@@ -11,7 +11,7 @@ import { TOKEN_DECIMALS, TOKEN_SYMBOL } from "./contracts";
  *    drift and, worse, two people reading different deadlines off the same request.
  *
  * 2. NO URGENCY. Deadlines render as a plain date. Time remaining, where shown at
- *    all, is coarse and unstyled — never a live countdown, never colour-coded into
+ *    all, is coarse and unstyled. Never a live countdown, never colour-coded into
  *    alarm. Urgency is the primary tool of crowdfunding fraud; a product whose whole
  *    claim is structural trustworthiness must not borrow its visual language.
  */
@@ -103,7 +103,7 @@ export function toAmountInput(value: bigint): string {
  * Progress as a percentage.
  *
  * A non-zero contribution never renders as "0%". Someone who has given something must not
- * be told the request has received nothing — so anything above zero that rounds down to
+ * be told the request has received nothing, so anything above zero that rounds down to
  * nothing shows as "<1%", and anything short of the goal that rounds up to 100 shows as
  * ">99%". Rounding must never contradict the actual state.
  */
@@ -140,16 +140,16 @@ export function shortHash(hash: string | undefined, chars = 6): string {
 
 /** Seconds since epoch (uint64 from the chain) -> `"30 September 2026"`. */
 export function formatDate(seconds: bigint | number | undefined): string {
-  if (seconds === undefined) return "—";
+  if (seconds === undefined) return "-";
   const ms = Number(seconds) * 1000;
-  if (!Number.isFinite(ms) || ms <= 0) return "—";
+  if (!Number.isFinite(ms) || ms <= 0) return "-";
   return dateFormatter.format(new Date(ms));
 }
 
 export function formatDateTime(seconds: bigint | number | undefined): string {
-  if (seconds === undefined) return "—";
+  if (seconds === undefined) return "-";
   const ms = Number(seconds) * 1000;
-  if (!Number.isFinite(ms) || ms <= 0) return "—";
+  if (!Number.isFinite(ms) || ms <= 0) return "-";
   return `${dateTimeFormatter.format(new Date(ms))} UTC`;
 }
 
@@ -173,7 +173,7 @@ export function formatCoarseInterval(seconds: number): string {
   return `over a year`;
 }
 
-/** `"Closes 30 September 2026"` / `"Closed 4 August 2026"` — a fact, not a threat. */
+/** `"Closes 30 September 2026"` / `"Closed 4 August 2026"`. A fact, not a threat. */
 export function describeDeadline(deadline: bigint, nowSeconds: number): string {
   const passed = nowSeconds >= Number(deadline);
   return `${passed ? "Closed" : "Closes"} ${formatDate(deadline)}`;

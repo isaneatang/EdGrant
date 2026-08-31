@@ -91,7 +91,7 @@ export function MobileNav({
   return (
     <div className="fixed inset-0 z-50 lg:hidden" onKeyDown={onKeyDown}>
       <div
-        className="animate-fade-in absolute inset-0 bg-ink/35 backdrop-blur-[2px]"
+        className="animate-fade-in absolute inset-0 bg-ink/50"
         onClick={onClose}
         aria-hidden
       />
