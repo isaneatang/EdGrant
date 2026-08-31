@@ -9,7 +9,7 @@ import { MoonIcon, SunIcon } from "@/components/ui/icons";
  *
  * `useSyncExternalStore` rather than an effect: React calls `getServerSnapshot` for the SSR
  * pass AND for the hydration render, then switches to `getSnapshot`. That is precisely the
- * guarantee needed here — server and first client render agree by construction — and unlike
+ * guarantee needed here, since server and first client render agree by construction, and unlike
  * setting state in an effect it does not fight the lint rule that exists to stop exactly
  * that pattern. Defined at module scope so the subscription is never torn down and rebuilt.
  */
@@ -23,8 +23,8 @@ const onServer = () => false;
  *
  * The server cannot know a visitor's colour preference, so it always renders the light-mode
  * variant. The bootstrap script in <head> then puts the right class on <html> before first
- * paint. If this component read `resolved` during its first client render — which is correct
- * for the page and was what it used to do — that first render would disagree with the server
+ * paint. If this component read `resolved` during its first client render, which is correct
+ * for the page and was what it used to do, that first render would disagree with the server
  * HTML and React would fail hydration for the whole tree.
  *
  * So the two halves are handled differently, according to what each one actually needs:

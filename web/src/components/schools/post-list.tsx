@@ -8,7 +8,7 @@ import { Chip } from "@/components/ui/chip";
  * A school's posts. All of it self-asserted, all of it captioned as such.
  *
  * An "Admissions" or "Fee notice" label is the school's own categorisation of its own
- * announcement — it is not a verified classification, and the panel says so. Posts are
+ * announcement. It is not a verified classification, and the panel says so. Posts are
  * rendered in a serif face inside a dashed container specifically so they never read with
  * the authority of the evidence panel.
  */

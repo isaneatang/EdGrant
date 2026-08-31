@@ -75,7 +75,7 @@ const MESSAGES: Record<string, string | Mapper> = {
 export type DecodedTxError = {
   /** One sentence, safe to show verbatim. */
   message: string;
-  /** True when the person simply declined in their wallet — not worth a red toast. */
+  /** True when the person simply declined in their wallet, so not worth a red toast. */
   rejected: boolean;
   /** The custom error name, when we could recover it. Useful in a details line. */
   errorName?: string;

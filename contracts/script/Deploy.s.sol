@@ -12,7 +12,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 /// @notice Deploys the registry, then the vault bound to it.
 ///
 /// @dev Deliberately refuses to guess. There is no fallback to testnet addresses when mainnet
-///      configuration is missing — BOT Chain's own docs warn about exactly that failure mode,
+///      configuration is missing. BOT Chain's own docs warn about exactly that failure mode,
 ///      and a vault pointed at the wrong token or the wrong registry is unrecoverable because
 ///      both are immutable.
 ///

@@ -13,8 +13,8 @@ import { useNow } from "@/hooks/use-now";
 /**
  * A fee request, as it appears in a list.
  *
- * What it leads with is chosen deliberately: the institution's REGISTERED name — a
- * verified registry fact — with the seal beside it. The student's optional pseudonym and
+ * What it leads with is chosen deliberately: the institution's REGISTERED name, a
+ * verified registry fact, with the seal beside it. The student's optional pseudonym and
  * statement come last, inside a dashed rule, captioned as the school's own words.
  *
  * What it deliberately lacks: a countdown, a "3 days left!" badge in a warning colour, a

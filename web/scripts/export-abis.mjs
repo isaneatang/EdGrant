@@ -27,7 +27,7 @@ const CONTRACTS = [
   "EdGrantLens",
 ];
 
-const banner = `// GENERATED FILE — do not edit by hand.
+const banner = `// GENERATED FILE. Do not edit by hand.
 // Source: contracts/out/<Contract>.sol/<Contract>.json (\`forge build\`)
 // Regenerate with: npm run abis
 `;
@@ -53,7 +53,7 @@ for (const name of CONTRACTS) {
   const artifact = JSON.parse(await readFile(artifactPath, "utf8"));
   const abi = artifact.abi;
   if (!Array.isArray(abi) || abi.length === 0) {
-    console.error(`  ${name} has an empty ABI — did forge build succeed?`);
+    console.error(`  ${name} has an empty ABI. Did forge build succeed?`);
     process.exit(1);
   }
 
@@ -68,7 +68,7 @@ for (const name of CONTRACTS) {
 
 // Minimal ERC-20 surface. Hand-written rather than exported from OpenZeppelin's
 // artifact: the interface only ever needs these five functions, and USDT on BOT
-// Chain has no permit() (verified live — DOMAIN_SEPARATOR and nonces both revert),
+// Chain has no permit() (verified live: DOMAIN_SEPARATOR and nonces both revert),
 // so there is nothing else worth carrying.
 const erc20 = `${banner}
 export const erc20Abi = [

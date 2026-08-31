@@ -17,7 +17,7 @@ import type { SchoolProfileData } from "@/lib/request";
  *
  * The banner at the top is not decoration. A school editing this screen should understand
  * that nothing they write here is evidence of anything, because the interface will render it
- * with visibly less authority than the badge — and that is deliberate. Telling them so here
+ * with visibly less authority than the badge, and that is deliberate. Telling them so here
  * is more honest than letting them discover it and assume it is a bug.
  */
 export function ProfileEditor() {

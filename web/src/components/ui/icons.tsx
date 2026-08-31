@@ -1,7 +1,7 @@
 import type { SVGProps } from "react";
 
 /**
- * Inline SVG only — no icon package, no font, no network request. Every glyph here is
+ * Inline SVG only: no icon package, no font, no network request. Every glyph here is
  * a thin 1.5px stroke on a 24-unit grid so the set reads as one family.
  *
  * Deliberately absent: flames, clocks with motion, exclamation marks, rockets. The

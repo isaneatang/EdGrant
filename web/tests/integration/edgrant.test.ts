@@ -4,7 +4,7 @@
  * Everything here goes through the exact ABIs the browser uses (`src/lib/abi`, generated
  * from Foundry artifacts) and the exact derivation the browser uses
  * (`deriveRequestState`). That is the point: the contracts already have 66 Foundry tests
- * covering their own behaviour, so what needs testing on this side is the seam — that the
+ * covering their own behaviour, so what needs testing on this side is the seam: that the
  * frontend reads the right things, decodes them into the right shapes, and reaches the same
  * verdict about a request that the contract does.
  *
@@ -377,7 +377,7 @@ describe("the contribution screen's single call carries everything a donor needs
     expect(classifyUri(proofURI).kind).toBe("http");
     expect(destination).toBe(accounts.school.address);
 
-    // And the destination is the school itself — never a platform wallet, never a student.
+    // And the destination is the school itself, never a platform wallet, never a student.
     expect(destination).toBe(request.school);
     expect(destination).not.toBe(d.vault);
   });
@@ -467,7 +467,7 @@ describe("the full lifecycle, as the interface sees it", () => {
     expect(s.state.canContribute).toBe(false);
     expect(s.state.canRelease).toBe(false);
 
-    // Each contributor takes back exactly their own contribution — nothing pooled,
+    // Each contributor takes back exactly their own contribution. Nothing pooled,
     // nothing swept, no administrator involved.
     const before = await rawClient.readContract({
       address: d.token,
@@ -650,7 +650,7 @@ describe("the verifier console's derived state matches the registry", () => {
     // The registry exposes no getter for its internal op-hash, so the console recomputes
     // keccak256(abi.encode("APPROVE", id)) to answer "have I already confirmed this?".
     // `string` and `bytes` share an ABI encoding, so a Solidity string literal and viem's
-    // `string` parameter must produce identical bytes — asserted here rather than assumed.
+    // `string` parameter must produce identical bytes, asserted here rather than assumed.
     const id = await (async () => {
       const fee = await rawClient.readContract({
         address: d.registry,
@@ -739,7 +739,7 @@ describe("the school console's reference matcher", () => {
     }
 
     expect(matches).toEqual([id]);
-    // And the identifier itself is nowhere on-chain — only the commitment to it.
+    // And the identifier itself is nowhere on-chain, only the commitment to it.
     expect(target).not.toContain("RCC");
   });
 });

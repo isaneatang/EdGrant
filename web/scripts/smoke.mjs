@@ -9,7 +9,7 @@
  *
  * The wallet is an EIP-1193 provider injected into the page, backed by a viem account
  * holding one of anvil's published keys. That means the write paths are exercised for real
- * — approve, contribute, release, refund, attest — against a real chain, through the same
+ * (approve, contribute, release, refund, attest) against a real chain, through the same
  * React code a person uses. No mocking of the data layer.
  *
  * It also checks the parts that are easy to claim and easy to get wrong:
@@ -216,8 +216,8 @@ async function ensureConnected(page) {
 /**
  * Runs whichever of the two steps the panel is actually offering.
  *
- * An allowance can already be sufficient — from a previous contribution, or a previous run
- * of this script — in which case step 1 legitimately does not appear.
+ * An allowance can already be sufficient, from a previous contribution or a previous run
+ * of this script, in which case step 1 legitimately does not appear.
  */
 async function approveThenContribute(page) {
   const approve = page.locator('button:has-text("Step 1 · Approve")');
@@ -269,7 +269,7 @@ async function settle(page, selector, timeout = 25_000) {
 /**
  * Resets the chain to genesis and reseeds it.
  *
- * The flow tests spend state — they withdraw the expired balance, they cast the deciding
+ * The flow tests spend state. They withdraw the expired balance, they cast the deciding
  * confirmation on a pending application. Without a reset, a second run would find that work
  * already done and report failures that are really just staleness. `anvil_reset` returns to
  * genesis, and because nonces reset too, reseeding produces the same contract addresses.
@@ -278,7 +278,7 @@ async function settle(page, selector, timeout = 25_000) {
  */
 async function reseed() {
   if (process.env.SMOKE_NO_RESEED === "1") {
-    note("SMOKE_NO_RESEED=1 — running against existing chain state");
+    note("SMOKE_NO_RESEED=1, running against existing chain state");
     return;
   }
   section("Resetting and reseeding the local chain");

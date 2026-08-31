@@ -25,7 +25,7 @@ import { ChevronRightIcon, SpinnerIcon, UsersIcon } from "@/components/ui/icons"
  * property is only honest if a contributor can find what they are owed without help, so
  * withdrawable balances are pulled to the top and totalled.
  *
- * Read from `vault.requestsByContributor(you)` — enumerable on-chain state, not a log
+ * Read from `vault.requestsByContributor(you)`, which is enumerable on-chain state, not a log
  * scan. Same constraint as everywhere else in this interface.
  */
 export function PortfolioView() {

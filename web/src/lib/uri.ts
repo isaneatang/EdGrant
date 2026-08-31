@@ -1,10 +1,10 @@
 /**
- * Every URI in this system is supplied by the entity being displayed — the proof URI
+ * Every URI in this system is supplied by the entity being displayed: the proof URI
  * by an applicant, logo/banner/website by a school. All of it is untrusted input that
  * we then render as something a donor is invited to click.
  *
  * So: an allowlist, not a blocklist. Only http and https become live links. Anything
- * else — javascript:, data:, vbscript:, or a scheme we simply have not thought about —
+ * else, meaning javascript:, data:, vbscript:, or a scheme we simply have not thought about,
  * is displayed as inert text with a note saying why. `ipfs://` is common enough in this
  * space to be worth resolving through a public gateway, but the raw value is always
  * shown too so nobody has to trust our gateway choice.

@@ -60,7 +60,7 @@ export type SupportedChainId = KnownChain["id"];
  * NEXT_PUBLIC_DEPLOYMENT_CHAIN_ID=31337 into web/.env.local.
  *
  * A deployed build has no such value, so anvil is absent from the network list, from
- * the wallet's switch targets, and from every message that names a network — including
+ * the wallet's switch targets, and from every message that names a network, including
  * error states, which is where a development chain would otherwise leak into public
  * view. A throwaway chain is a developer's tool and has no business appearing in front
  * of a donor.
@@ -80,7 +80,7 @@ const defaultChain = enabledChains.find((c) => c.id === envDefaultId) ?? enabled
  *
  * wagmi reads `config.chains[0]` whenever no wallet is connected, which is most
  * visitors most of the time. A list whose first entry is not the intended default
- * silently reads the wrong network for them — the screen renders, the calls succeed,
+ * silently reads the wrong network for them. The screen renders, the calls succeed,
  * and it simply shows an empty feed from a chain nobody meant to query.
  */
 export const supportedChains: readonly [Chain, ...Chain[]] = [

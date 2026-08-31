@@ -16,7 +16,7 @@ import { ThemeToggle } from "./theme-toggle";
  *   - Focus is trapped inside while open, so Tab cannot wander into the page behind.
  *   - Background scroll is locked without the iOS rubber-band jump (position is left
  *     alone; `overflow: hidden` plus `touch-action: none` on <html>).
- *   - Every target is at least 48px tall — this is used one-handed on a phone.
+ *   - Every target is at least 48px tall, because this is used one-handed on a phone.
  *   - Padded for safe-area insets so it clears notches and home indicators.
  *   - Navigating closes it, including when the same route is tapped again.
  */

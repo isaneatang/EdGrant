@@ -21,7 +21,7 @@ const SORTS: { id: Sort; label: string }[] = [
 /**
  * The global feed of fee balances currently accepting contributions.
  *
- * Sorting is offered because different people help differently — some want the smallest
+ * Sorting is offered because different people help differently. Some want the smallest
  * balance they can clear outright, some want to finish something already nearly funded.
  * "Closing soonest" is available but is not the default and is not styled as a warning:
  * ordering by date is useful, dressing it up as scarcity is not.

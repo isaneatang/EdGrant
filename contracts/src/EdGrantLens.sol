@@ -8,7 +8,7 @@ import {SchoolProfile} from "./SchoolProfile.sol";
 
 /// @title EdGrantLens
 /// @notice Read-only aggregation for the interface. Holds no state, holds no value, and has no
-///         privileged functions — it only composes view calls across the other three contracts.
+///         privileged functions. It only composes view calls across the other three contracts.
 ///
 /// @dev Exists for two reasons.
 ///

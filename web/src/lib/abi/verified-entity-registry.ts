@@ -1,4 +1,4 @@
-// GENERATED FILE — do not edit by hand.
+// GENERATED FILE. Do not edit by hand.
 // Source: contracts/out/<Contract>.sol/<Contract>.json (`forge build`)
 // Regenerate with: npm run abis
 

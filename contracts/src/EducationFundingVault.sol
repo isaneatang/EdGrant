@@ -140,7 +140,7 @@ contract EducationFundingVault is ReentrancyGuardTransient {
 
     /// @notice Attest that a student owes fees, and open the balance for contribution.
     /// @dev Callable only by a currently-verified entity. The claim being recorded is not
-    ///      "this student deserves help" — an unverifiable judgement — but "this school says
+    ///      "this student deserves help", which is an unverifiable judgement, but "this school says
     ///      this student owes this amount", made by the party that would be owed the money,
     ///      from its own verified address.
     function createRequest(bytes32 studentRef, uint128 goal, uint64 deadline)

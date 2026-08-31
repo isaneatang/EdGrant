@@ -28,10 +28,10 @@ export type TxRequest = {
  *
  * Every write in this interface goes through here, so the behaviour is uniform:
  *
- *   signing  — the wallet is open. No toast: the wallet is already the notification.
- *   mining   — a toast with the hash and an explorer link, so the tx is never "lost".
- *   done     — a confirmation naming what changed, then affected reads are invalidated.
- *   error    — a decoded, human sentence. A dismissal in the wallet is not an error.
+ *   signing:  the wallet is open. No toast: the wallet is already the notification.
+ *   mining:   a toast with the hash and an explorer link, so the tx is never "lost".
+ *   done:     a confirmation naming what changed, then affected reads are invalidated.
+ *   error:    a decoded, human sentence. A dismissal in the wallet is not an error.
  *
  * `chainId` is left to wagmi's connected chain deliberately. Pinning it here would let a
  * transaction be signed for a network the user is not looking at.
@@ -56,7 +56,7 @@ export function useTxRunner() {
    * Returns the mined receipt on success, or null on rejection/revert.
    *
    * The receipt rather than just the hash, because a caller sometimes needs a value the
-   * transaction produced — `createRequest` returns a new request id, and the honest way to
+   * transaction produced. `createRequest` returns a new request id, and the honest way to
    * learn it is to decode `RequestCreated` out of this receipt. Re-reading a counter
    * afterwards would race with anyone else writing to the same contract.
    */

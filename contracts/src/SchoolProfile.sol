@@ -20,7 +20,7 @@ import {IVerifiedEntityRegistry} from "./interfaces/IVerifiedEntityRegistry.sol"
 ///      them. Profile content is marketing. The badge is evidence. Show them differently.
 ///
 ///      Writing requires current verification, so a revoked school cannot keep publishing.
-///      Reading never requires it — a revoked school's profile stays readable so that the
+///      Reading never requires it, so a revoked school's profile stays readable and the
 ///      interface can show what was claimed alongside the fact that the badge is gone.
 ///
 ///      Deployed separately from the registry and the vault so that presentation concerns can

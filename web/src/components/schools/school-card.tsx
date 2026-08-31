@@ -12,7 +12,7 @@ import { TrackRecord } from "./track-record";
  * A verified institution as it appears in the directory.
  *
  * The verified name from the registry is the heading. The self-asserted display name and
- * logo are shown only as secondary, captioned detail — if a school calls itself something
+ * logo are shown only as secondary, captioned detail. If a school calls itself something
  * different from the name it was verified under, that discrepancy is a finding and this
  * card surfaces it rather than smoothing it over.
  */

@@ -155,7 +155,7 @@ describe("deriveRequestState", () => {
   });
 
   it("treats an overfunded balance as met, and clamps progress", () => {
-    // Cannot happen through contribute(), which reverts above the remainder — but a
+    // Cannot happen through contribute(), which reverts above the remainder, but a
     // display that produced 120% or a negative remainder would still be a bug.
     const state = deriveRequestState(request({ raised: 1200n * USD }), {
       schoolVerified: true,

@@ -16,7 +16,7 @@ import {MockUSDT} from "../test/mocks/MockUSDT.sol";
 /// @dev Intended for local anvil and for BOT Chain testnet (968) ONLY.
 ///
 ///      Running this means acting as your own verifier and approving your own school. On a
-///      testnet that is simply how you exercise the flow — you hold every key, and nothing here
+///      testnet that is simply how you exercise the flow. You hold every key, and nothing here
 ///      represents a real institution. On mainnet it would be precisely the impersonation this
 ///      project exists to prevent, so the script refuses to run on chain 677.
 ///

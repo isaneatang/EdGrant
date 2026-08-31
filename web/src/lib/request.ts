@@ -5,9 +5,9 @@ import { MAX_DURATION_SECONDS, MIN_DURATION_SECONDS } from "./contracts";
  * The shapes the lens and vault return, plus the state machine derived from them.
  *
  * The derivation below is the single place the interface decides what a request "is".
- * It mirrors EducationFundingVault exactly — release() requires
+ * It mirrors EducationFundingVault exactly. release() requires
  * `!disbursed && raised >= goal && isVerified(school)`, refund() requires
- * `!disbursed && (!isVerified(school) || (now >= deadline && raised < goal))` — because
+ * `!disbursed && (!isVerified(school) || (now >= deadline && raised < goal))`. This matters because
  * a screen that offers a button the contract will reject is a screen that wastes a
  * donor's gas and their trust. It is pure, and it is unit-tested.
  */
@@ -124,7 +124,7 @@ export type RequestState = {
   detail: string;
   /** Contract will accept `contribute`. */
   canContribute: boolean;
-  /** Contract will accept `release` — permissionless, anyone may call it. */
+  /** Contract will accept `release`, which is permissionless and callable by anyone. */
   canRelease: boolean;
   /** Contract will accept `refund` from anyone who contributed. */
   canRefund: boolean;
@@ -189,7 +189,7 @@ export function deriveRequestState(
 
   // Revocation outranks everything else that is still open. The vault refuses to
   // release to an unverified school and lets contributors withdraw immediately,
-  // deadline or not — revocation fails in the only safe direction.
+  // deadline or not. Revocation fails in the only safe direction.
   if (!schoolVerified) {
     return {
       ...base,

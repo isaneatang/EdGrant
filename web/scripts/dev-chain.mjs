@@ -37,7 +37,7 @@ const contractsDir = join(repoRoot, "contracts");
 const RPC = "http://127.0.0.1:8545";
 const USD = 1_000_000n;
 
-// Anvil's default derivation. Publicly known — see Foundry's docs. Local use only.
+// Anvil's default derivation. Publicly known, see Foundry's docs. Local use only.
 const KEYS = {
   verifierA: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
   verifierB: "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
@@ -291,7 +291,7 @@ async function publishProfileB(ctx) {
       "",
       "A technical institute offering two- and three-year diplomas in engineering trades, " +
         "surveying, and applied computing. Everything on this profile was written by the " +
-        "institute and is verified by nobody — the badge and its proof link are the only evidence.",
+        "institute and is verified by nobody. The badge and its proof link are the only evidence.",
       "https://example.net",
       "Northgate",
     ],
@@ -397,7 +397,7 @@ async function secondDonor(ctx) {
  * A balance that closes unmet, so the refund path is reachable immediately.
  *
  * MIN_DURATION is one day, so the only way to see a closed request without waiting is
- * to advance the chain. 36 hours clears this request's deadline and nothing else's —
+ * to advance the chain. 36 hours clears this request's deadline and nothing else's,
  * every other seeded request has at least 14 days.
  */
 async function createExpiring(ctx) {
@@ -521,7 +521,7 @@ async function writeDeployments(addresses) {
   const target = join(webRoot, ".env.local");
   await mkdir(dirname(target), { recursive: true });
   const body = [
-    "# Written by `npm run devchain`. Local anvil only — regenerated on every run.",
+    "# Written by `npm run devchain`. Local anvil only, regenerated on every run.",
     "# Real deployments belong in packages/config/chains.json, which is reviewed.",
     `# Generated ${new Date().toISOString()}`,
     "",
@@ -567,8 +567,8 @@ async function report(ctx) {
   const roles = [
     ["Verifier A", "verifierA", "approve/reject applications, revoke verification"],
     ["Verifier B", "verifierB", "the second signature in 2-of-2"],
-    ["School — Riverside", "schoolA", "school console: profile, posts, fee requests"],
-    ["School — Northgate", "schoolB", "second verified school"],
+    ["School (Riverside)", "schoolA", "school console: profile, posts, fee requests"],
+    ["School (Northgate)", "schoolB", "second verified school"],
     ["Donor", "donor", "holds USDT; contribute and withdraw"],
     ["Donor 2", "donor2", "also a pending applicant, for the verifier console"],
   ];
@@ -583,7 +583,7 @@ async function report(ctx) {
   log(`  2. Import a key above (MetaMask: Account -> Import -> Private Key)`);
   log(`  3. npm run dev   then open http://localhost:3000`);
   log(
-    `\n  \x1b[2mNote: the chain clock was advanced 36h to expire one request. That is why a\n  request shows as closed while its date still looks near — the interface reads the\n  contract's own verdict, not your browser clock.\x1b[0m\n`,
+    `\n  \x1b[2mNote: the chain clock was advanced 36h to expire one request. That is why a\n  request shows as closed while its date still looks near. The interface reads the\n  contract's own verdict, not your browser clock.\x1b[0m\n`,
   );
 }
 

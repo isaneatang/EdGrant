@@ -48,8 +48,8 @@ export function useDeployment() {
 /**
  * The chain's own clock, in seconds.
  *
- * Anywhere a value is compared against `block.timestamp` by a contract — deadline bounds in
- * particular — this is the clock that decides whether the call succeeds, not the browser's.
+ * Anywhere a value is compared against `block.timestamp` by a contract, deadline bounds in
+ * particular, this is the clock that decides whether the call succeeds, not the browser's.
  * A registrar in a skewed timezone, or a local chain whose time has been advanced, would
  * otherwise be offered a closing date the vault then rejects.
  *
@@ -170,7 +170,7 @@ export function useDirectory() {
 }
 
 // ---------------------------------------------------------------------------
-// School page — one call, by design
+// School page: one call, by design
 // ---------------------------------------------------------------------------
 
 export type SchoolPage = {
@@ -225,7 +225,7 @@ export function useSchoolRequests(school: Address | undefined, limit = 100) {
 }
 
 // ---------------------------------------------------------------------------
-// Single request — the contribution screen
+// Single request: the contribution screen
 // ---------------------------------------------------------------------------
 
 export type RequestSummary = {
@@ -508,7 +508,7 @@ export type SchoolIdentity = {
  *
  * The lens's request feeds return `request.school` but not the school's registered name,
  * and a feed that shows only a hex address buries the single most useful trust signal a
- * donor has. So the feed resolves identities separately — deduplicated, so a school with
+ * donor has. So the feed resolves identities separately, deduplicated, so a school with
  * eight open requests costs one call, not eight.
  *
  * These are registry facts. They are safe to render with authority. Anything from
@@ -629,7 +629,7 @@ export type Application = {
 /**
  * Every verification application, newest first, with confirmation progress.
  *
- * Read by enumerating `requestCount` and calling `getRequest` per id — not by scanning
+ * Read by enumerating `requestCount` and calling `getRequest` per id, never by scanning
  * `VerificationRequested` events. Same reason as everywhere else: the mainnet RPC
  * restricts log queries, and a verifier console that cannot list pending work is useless
  * exactly when it matters.

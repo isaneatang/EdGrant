@@ -9,7 +9,7 @@ import { describeTrackRecord, type SchoolStats } from "@/lib/request";
  * `totalDisbursed` is the headline and the ordering is deliberate: money that ACTUALLY
  * REACHED the institution first, everything else after. It is the single most honest trust
  * signal in the product, because it is derived from chain state and cannot be faked by
- * anyone — not by the school, not by a verifier, not by us. "Asked for" is a much weaker
+ * anyone: not by the school, not by a verifier, not by us. "Asked for" is a much weaker
  * signal and is presented as such.
  */
 export function TrackRecord({

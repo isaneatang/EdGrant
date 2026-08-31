@@ -14,7 +14,7 @@ import { supportedChains, localAnvil, botchainTestnet, botchainMainnet } from "@
  * WalletConnect is added ONLY when a Reown project id is configured. This is a
  * deliberate reversal of the original injected-only stance, and the trade is worth
  * stating rather than burying: without it, a donor on a phone can connect only from
- * inside a wallet's own browser, which excludes most mobile users — and mobile is not
+ * inside a wallet's own browser, which excludes most mobile users, and mobile is not
  * a minority case for this audience. With it, Reown's relay sits in the connection
  * path and sees session metadata, so the "no third party is involved in a donation"
  * claim narrows to "no third party can touch the money", which is still true and is
@@ -22,7 +22,7 @@ import { supportedChains, localAnvil, botchainTestnet, botchainMainnet } from "@
  *
  * It is opt-in by absence: with no project id the app is exactly as it was before,
  * injected-only, rather than half-configured and failing at connect time. The same
- * principle the chain config uses — an unconfigured thing says so instead of guessing.
+ * principle the chain config uses, where an unconfigured thing says so instead of guessing.
  *
  * `batch: false` on the public networks: BOT Chain's public RPC is rate-limited and
  * Multicall3 exists, so wagmi batches reads through the contract rather than by
@@ -30,7 +30,7 @@ import { supportedChains, localAnvil, botchainTestnet, botchainMainnet } from "@
  */
 
 /**
- * Public by design — it identifies the app to Reown's relay and is visible in any
+ * Public by design. It identifies the app to Reown's relay and is visible in any
  * browser. It is not a secret and must never be treated as one.
  */
 const reownProjectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID?.trim();

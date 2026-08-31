@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   EdGrant design system — "Ledger"
+   EdGrant design system: "Ledger"
    --------------------------------------------------------------------------
    The interface's job is to make the trust model legible, so the visual
    language is that of an institutional record rather than a fundraising page.
@@ -81,7 +81,7 @@
   --color-evidence-soft: #e3edf8;
   --color-evidence-rule: #9dc0e2;
 
-  /* Delivered — money that actually arrived. The strongest honest signal. */
+  /* Delivered: money that actually arrived. The strongest honest signal. */
   --color-delivered: #0d5132;
   --color-delivered-soft: #d9ecdf;
   --color-delivered-rule: #8dc4a2;

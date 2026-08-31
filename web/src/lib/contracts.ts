@@ -8,7 +8,7 @@ import { localAnvil, botchainTestnet, botchainMainnet } from "./chains";
  *   1. NEXT_PUBLIC_*_ADDRESS in web/.env.local, scoped to NEXT_PUBLIC_DEPLOYMENT_CHAIN_ID.
  *      `npm run devchain` writes these for the local anvil deployment, and a developer can
  *      point at a one-off deployment the same way.
- *   2. packages/config/chains.json — the reviewed, committed record of real deployments.
+ *   2. packages/config/chains.json, the reviewed, committed record of real deployments.
  *
  * Two mechanisms, no third. An earlier version also read a generated JSON file, which was
  * gitignored and therefore broke a fresh clone at build time; .env.local is gitignored

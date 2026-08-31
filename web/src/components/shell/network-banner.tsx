@@ -9,7 +9,7 @@ import { SwitchNetworkButton } from "./switch-network-button";
 /**
  * A single honest line about the network, shown only when something is actually wrong.
  *
- * Three distinct problems, three distinct messages — because "something went wrong" is
+ * Three distinct problems, three distinct messages, because "something went wrong" is
  * useless and a screen full of empty state with no explanation is worse.
  */
 export function NetworkBanner() {

@@ -26,7 +26,7 @@ import {
  * Includes a reference matcher, which solves a real problem the privacy design creates:
  * on-chain the student reference is a keccak commitment, so a registrar cannot read a
  * request and recall which student it belongs to. They can, however, re-hash a candidate
- * reference from their own records — so the matcher does exactly that, locally, and
+ * reference from their own records, so the matcher does exactly that, locally, and
  * highlights the request it belongs to. No identifier is ever sent anywhere.
  */
 export function SchoolRequests({ school }: { school: `0x${string}` }) {

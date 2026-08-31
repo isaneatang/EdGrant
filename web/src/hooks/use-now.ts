@@ -15,7 +15,7 @@ function nowSeconds(): number {
  * Ticks once a minute, which is enough to move a request from "open" to "closed unmet"
  * shortly after its deadline and nowhere near often enough to render a countdown. That is
  * the point: urgency theatre is the fraudster's tool, and this product exists to replace it.
- * Deadlines are day-scale by construction — the vault's MIN_DURATION is one day — so a
+ * Deadlines are day-scale by construction (the vault's MIN_DURATION is one day), so a
  * minute of drift cannot change any outcome.
  *
  * Nothing that decides whether a *button* appears depends on this value; that comes from the

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { classifyUri, hostOf, safeHref, safeImageSrc } from "./uri";
 
 /**
- * Every URI here is supplied by the entity being displayed — the proof URI by an applicant,
- * logo/banner/website by a school — and is then rendered as something a donor is invited to
+ * Every URI here is supplied by the entity being displayed, the proof URI by an applicant
+ * and logo/banner/website by a school, then rendered as something a donor is invited to
  * click. So this is an allowlist, and these tests exist to make sure it stays one.
  */
 describe("classifyUri", () => {
@@ -74,7 +74,7 @@ describe("classifyUri", () => {
     expect(result.kind).toBe("unsafe");
     if (result.kind === "unsafe") {
       expect(result.reason.length).toBeGreaterThan(0);
-      // The raw value is still preserved for display — a hostile proof URI is itself a
+      // The raw value is still preserved for display, because a hostile proof URI is itself a
       // finding a donor should be able to see.
       expect(result.display).toBe("javascript:alert(1)");
     }
