@@ -525,3 +525,119 @@ NEXT
 ================================================================================
 END ENTRY 002
 ================================================================================
+
+
+--------------------------------------------------------------------------------
+[2026-08-31] ENTRY 003 - SCHOOL PROFILES, DUMMY-SCHOOL TOOLING, HANDOFF DOC
+--------------------------------------------------------------------------------
+
+USER DECISIONS THIS ROUND
+  Q: what does "offer the school fees available to mint" mean?
+  A: publish fundable fee requests. => That IS createRequest, already built.
+     "Mint" here means the school issues/creates a fundable fee item, NOT an
+     NFT and NOT a tokenised debt instrument. No contract change was needed for
+     this; the profile page simply lists that school's open requests.
+     Explicitly NOT chosen (recorded so nobody re-litigates it later):
+       - NFT donor receipts
+       - a reusable fee catalog / template system
+       - tokenising the fee debt as a transferable claim (would have changed the
+         trust model substantially - closer to the ERC-3643 RWA territory)
+
+  Q: where should profile content live?
+  A: FULLY ON-CHAIN. Not an IPFS/JSON pointer.
+     => New contract SchoolProfile.sol stores profile fields and posts as
+        contract state. Honest caveat recorded in the contract: image BYTES
+        obviously cannot live on-chain, so logoURI/bannerURI are still URIs.
+        The profile FIELDS are on-chain; the images they point at are not.
+     => Gas is near-free on this chain (20 gwei, 0.7s blocks), so the usual
+        objection to on-chain content does not really apply here.
+
+D-10  PROFILE CONTENT IS SELF-ASSERTED AND MUST NEVER BE RENDERED AS EVIDENCE.
+      This is the single most important thing about SchoolProfile and it is a
+      trust-model issue, not a styling preference.
+      The ONLY verified facts in this system are in VerifiedEntityRegistry: that
+      an address is controlled by the named institution, plus the proofURI.
+      Everything a school types into its profile - name, description, logo,
+      admissions posts - is checked by nobody.
+      If the UI renders profile text with the same visual authority as the
+      verified badge, it hands impersonators exactly the credibility this whole
+      project exists to deny them. A fraudster's profile would look identical to
+      a real one.
+      => PROFILE CONTENT IS MARKETING. THE BADGE IS EVIDENCE. SHOW THEM
+         DIFFERENTLY. Written into the contract docs so it survives a rewrite.
+
+D-11  WRITE REQUIRES VERIFICATION; READ NEVER DOES.
+      A revoked school cannot keep publishing (onlyVerified on every write), but
+      its existing profile stays readable. Deliberate: the interface needs to
+      show what was claimed NEXT TO the fact that the badge is gone. Deleting
+      the profile on revocation would destroy exactly the evidence a donor
+      wants after something goes wrong.
+
+D-12  HIDING A POST IS NOT DELETING IT, AND WE SAY SO.
+      setPostVisibility(id,false) removes a post from the public feed. It does
+      not and cannot erase it - public chain, still in state and history. The
+      contract documents this rather than shipping a delete button that lies.
+
+D-13  NEW STATELESS LENS CONTRACT (EdGrantLens.sol).
+      Direct consequence of D-08 / constraint C1 (eth_getLogs restricted on the
+      public mainnet RPC). Two reasons it earns its place:
+        a) A school profile page needs profile + posts + open requests +
+           aggregate stats. Without a lens that is dozens of round trips.
+           schoolPage() answers it in ONE eth_call.
+        b) Stateless and value-free means it can be REDEPLOYED FREELY as the UI
+           evolves, without migrating state or touching contracts that hold
+           money or grant identity. Presentation churn must never require a
+           value migration.
+      SchoolStats.totalDisbursed is the field that matters most for trust:
+      money that ACTUALLY REACHED the institution, derived from chain state,
+      unfakeable. "$8,400 delivered across 12 students" is a stronger and more
+      honest signal than anything a school could write about itself.
+
+D-14  DUMMY-SCHOOL SEEDING IS SCRIPTED, AND HARD-BLOCKED ON MAINNET.
+      script/SeedDemo.s.sol runs the whole path: school applies -> 2 verifiers
+      approve -> profile + 2 posts published -> 3 fee requests created -> donor
+      partially funds one and fully funds another.
+      On testnet, self-approving your own fictional school is simply how you
+      exercise the flow; you hold every key and nothing represents a real
+      institution. On MAINNET the identical action is precisely the
+      impersonation this project exists to prevent, so the script requires
+      block.chainid != 677. DO NOT REMOVE THAT GUARD.
+      One request is deliberately left with NO student context, to keep proving
+      the mechanism works fully when a student shares nothing at all.
+
+VERIFIED WORKING (not just compiled)
+  Ran SeedDemo against local anvil end to end. release() moved exactly
+  300 USDT to the school while the vault correctly retained the 175 USDT from
+  the partially-funded request. Queried the lens live afterwards:
+    schoolStats -> (3 total, 2 open, 0 disbursed, 1 releasable, 0 expired,
+                    1950 USDT requested, 475 USDT held, 0 disbursed)
+  which matches the seeded state exactly.
+
+STATE OF THE TREE NOW
+  63 tests passing (was 44). New: SchoolProfile 11, EdGrantLens 8.
+  Sizes, EIP-170 limit 24,576 B:
+    VerifiedEntityRegistry  10,242    EdGrantLens             9,069
+    EducationFundingVault    8,900    SchoolProfile           7,633
+  All four have >14 KB headroom.
+
+  Deploy.s.sol and SeedDemo.s.sol both updated to handle all four contracts.
+
+NEW FILE: HANDOFF.txt
+  Standalone project brief written so another AI or developer can pick this up
+  cold with no access to this conversation. Contains the philosophy summary, the
+  five inviolable rules, all chain parameters and the three constraints that
+  shaped the architecture, a full description of every contract, the dummy-school
+  workflow, the frontend plan, open questions, and every deliberate deviation
+  from the essay. If HANDOFF.txt and the essay ever disagree, THE ESSAY WINS.
+
+NEXT (unchanged from entry 002, plus the frontend detail)
+  1. Faucet the deployer on 968 EARLY (10 tBOT/24h cap gates everything).
+  2. Deploy all four to 968, verify on Blockscout, record addresses in
+     packages/config/chains.json.
+  3. Live end-to-end rehearsal with distinct EOAs.
+  4. Frontend. Contribution screen first - it is the most important screen in
+     the product. requestSummary() was designed for it specifically.
+
+================================================================================
+END ENTRY 003
+================================================================================

@@ -6,6 +6,7 @@ import {EducationFundingVault} from "../src/EducationFundingVault.sol";
 import {VerifiedEntityRegistry} from "../src/VerifiedEntityRegistry.sol";
 
 contract EducationFundingVaultTest is Base {
+    // forge-lint: disable-next-line(unsafe-typecast)
     uint128 internal constant GOAL = uint128(450 * USD);
 
     function setUp() public override {

@@ -1,0 +1,400 @@
+================================================================================
+EDGRANT - PROJECT HANDOFF BRIEF
+================================================================================
+Written to be self-contained. If you are an AI assistant or a developer picking
+this up cold, with no access to the conversation that produced it, this file
+plus the three documents it names should be everything you need.
+
+Last updated: 2026-08-31
+Repo root:    /home/isane/Documents/DONCODER/EdGrant
+
+READ IN THIS ORDER
+  1. EDUCATION_FUNDING_PROJECT_ESSAY.md  WHY. The philosophy. Non-negotiable.
+  2. This file                           WHAT exists, and how to run it.
+  3. BOTCHAIN_NOTES.txt                  Chain research + every decision + why.
+  4. README.md                           Short public-facing overview.
+
+If this file and the essay ever disagree, THE ESSAY WINS. It is the spec.
+
+================================================================================
+1. WHAT THIS PROJECT IS, IN ONE PARAGRAPH
+================================================================================
+
+Students worldwide crowdfund school fees, and donors have no reliable way to
+tell a genuine appeal from a fraudulent one, nor to confirm the money ever
+reached a school. EdGrant removes the problem structurally rather than policing
+it: a VERIFIED SCHOOL attests on-chain that a student owes a specific amount,
+supporters contribute toward that amount, and on success the contract sends
+funds DIRECTLY TO THE SCHOOL'S VERIFIED WALLET. If the deadline passes unmet,
+each contributor withdraws their own contribution. The student never has custody
+and cannot receive, redirect, or spend the money. You cannot misappropriate
+funds you never hold.
+
+The trust model rests on one honest admission: code cannot verify that a wallet
+belongs to a real university. So verification is a human process — but a NARROW,
+OBJECTIVE one. It is proof-of-control, not subjective review: the institution
+publishes its wallet address somewhere the public already trusts (its own
+domain, its verified social account), and that proof link is stored on-chain so
+any sceptical donor can re-check it themselves in one click. Same logical
+pattern as DNS domain verification.
+
+================================================================================
+2. THE FIVE RULES THAT MUST NEVER BE BROKEN
+================================================================================
+Every one of these is load-bearing. If a proposed change violates one, the
+change is wrong, not the rule.
+
+  R1. Money NEVER routes through the student. Vault -> verified school, only.
+  R2. NO admin override, NO pause, NO deployer privilege on the vault. If a
+      change seems to need one, redesign the change.
+  R3. Refunds are individual and pull-based. Nothing is ever swept. No pooled
+      refund. No unclaimed balance accumulates anywhere.
+  R4. Verification is proof-of-control, never subjective judgement. The proof
+      URI must be publicly re-checkable by anyone.
+  R5. Student PII stays off-chain. On-chain student reference is an opaque
+      school-internal identifier. Pseudonym and statement are optional and the
+      mechanism works fully without them.
+
+  Plus one UX rule that matters as much: TONE IS CALM AND SERIOUS. No countdown
+  timers, no urgency theatre, no emotive pressure. Urgency is the primary tool
+  of crowdfunding fraud. A platform whose entire value proposition is structural
+  trustworthiness must not borrow the visual language of the thing it replaces.
+
+================================================================================
+3. THE CHAIN: BOT CHAIN
+================================================================================
+BOT Chain is a BSC FORK. That is the single most useful fact. Evidence, verified
+live rather than taken from marketing: web3_clientVersion returns
+"Geth/v1.5.13-..." (the bsc-geth line), consensus is Parlia PoSA, docs cite
+BEP-126 and BEP-341, BSC system contracts sit at 0x...1000-0x...2000.
+Everything you know about building on BSC applies.
+
+Its marketing calls it an "AI-native L1 for AI agents". Ignore that. There are
+no AI precompiles and no agent-specific opcodes. This is a fast, cheap, ordinary
+EVM chain.
+
+Careful: unrelated projects share the name. NOT ours: botchain.tech,
+botchain.dev, botchain.io, botchain.sh. Ours is botchain.ai / @BOTChain_ai.
+
+  TESTNET ("Bohr")  <- build target
+    Chain ID   968              (eth_chainId -> 0x3c8, verified)
+    RPC        https://rpc.bohr.life
+    Explorer   https://scan.bohr.life          (Blockscout)
+    Faucet     https://faucet.botchain.ai/basic
+    USDT       0x75edC9335175Fc0552D51D48439F229c10420fe3   (6 decimals)
+    Permit2    0xaE85b2bc7578F8Ca9217900a2D548151F96447de
+    Multicall3 0x47FA21f684bBAD707A53a0f9BE59F1422F46C265
+
+  MAINNET
+    Chain ID   677              (eth_chainId -> 0x2a5, verified)
+    RPC        https://rpc.botchain.ai
+    Explorer   https://scan.botchain.ai
+    USDT       0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C   (6 decimals)
+    Permit2    0x8366170f09a04f715a13549D616a06aED16Db7c3
+    Multicall3 0x47FA21f684bBAD707A53a0f9BE59F1422F46C265
+
+  MEASURED LIVE (2026-08-31)
+    Block time      ~0.7 s
+    Block gas limit 35,000,000
+    eth_gasPrice    20 gwei
+    baseFeePerGas   0  -> legacy pricing; base fee is flat zero
+    Finality        ~2 blocks with fast finality (>=2/3 validators voting)
+    EVM             CANCUN. PUSH0/TLOAD/TSTORE/MCOPY all probed OK on BOTH
+                    chains via eth_call against raw creation bytecode.
+    Solidity        Blockscout verifier advertises up to 0.8.36. We use 0.8.28.
+
+  DEVELOPER DOCS: https://dev-docs.botchain.ai
+    IMPORTANT: botchain.ai and all subdomains return 403 to automated fetchers.
+    You MUST pass a browser User-Agent via curl. Plain scrapers get blocked.
+
+  THREE CHAIN CONSTRAINTS THAT SHAPED THE ARCHITECTURE
+
+  C1. eth_getLogs IS RESTRICTED ON THE PUBLIC MAINNET RPC.
+      Docs say "disabled"; a single-block query actually succeeded, so it is
+      range/rate limited rather than off. Either way it is a trap.
+      => THE DAPP MUST BE FULLY FUNCTIONAL FROM VIEW CALLS ALONE. Contracts
+         maintain enumerable on-chain state with paginated getters. Events exist
+         for auditability and indexers, NOT as the primary read path.
+      => If you build the UI to reconstruct state by scanning logs from block 0,
+         it will work perfectly on testnet and fall over on mainnet.
+
+  C2. FAUCET CAPS AT 10 tBOT PER ADDRESS PER 24 HOURS.
+      A full rehearsal needs a deployer, 2-3 verifiers, a school, and 2-3
+      contributors. Fund the deployer EARLY and drip to test actors from it.
+      This gates everything downstream. Do not discover it on demo day.
+
+  C3. USDT HAS NO EIP-2612 permit(). Verified: DOMAIN_SEPARATOR() and
+      nonces(address) both revert, on both chains. Sign-once UX must use
+      Permit2, or accept the two-step approve + contribute. It IS a standard
+      OpenZeppelin ERC-20 that returns bool from transfer (so it lacks the
+      infamous Tether-on-Ethereum quirk) — but we use SafeERC20 anyway because
+      it sits behind a proxy and the implementation can change.
+
+================================================================================
+4. WHAT IS BUILT (all of it tested, none of it deployed yet)
+================================================================================
+
+  contracts/   Foundry - solc 0.8.28, evm cancun, optimizer 200 runs
+
+  ---- src/VerifiedEntityRegistry.sol ------------------------ 10,242 B --------
+  The identity layer. Binds wallet addresses to verified real-world entities.
+
+    * Entity applies with name, entity type, proofURI, plus an anti-spam fee in
+      native BOT (kept token-agnostic so the registry is reusable by other
+      projects, and so a school's first-ever interaction needs no approve step).
+    * EVERY privileged action needs `threshold` confirmations from DISTINCT
+      verifiers. m-of-n is built in — we do not depend on Safe being deployed.
+    * THERE IS NO OWNER. The verifier set governs itself under the same m-of-n
+      rule. An owner able to swap verifiers could install itself as sole
+      verifier, which is a backdoor around the exact property the essay demands.
+    * Revocation is first-class. Stores name, type, proofURI, approving
+      verifier, timestamp, active flag.
+    * Enumerable: verifiedAccounts(offset, limit), because of C1.
+
+    Confirmation pattern (generic op-hash, compact and auditable):
+      approve    keccak(APPROVE, requestId)      unique via request status
+      reject     keccak(REJECT,  requestId)
+      revoke     keccak(REVOKE,  account, entityEpoch[account])
+      governance keccak(op, args, governanceNonce)
+    entityEpoch exists so approve->revoke->approve->revoke cannot replay a stale
+    revoke hash. governanceNonce means only ONE governance op may be in flight
+    at a time — accepted limitation; verifiers coordinate off-chain anyway.
+    removeVerifier() takes newThreshold in the SAME call so the set can never be
+    left with threshold > verifierCount, which would deadlock it permanently.
+
+  ---- src/EducationFundingVault.sol ------------------------- 8,900 B ---------
+  Holds contributions, releases them, handles refunds. Denominated in USDT.
+
+    createRequest(studentRef, goal, deadline)  only currently-verified callers
+    setContext(id, pseudonym, statement)       school-only, optional
+    contribute(id, amount)                     anyone; reverts if > remaining
+    release(id)                                ANYONE may call; pays the school
+    refund(id)                                 pull your own contribution back
+
+    Duration bounds: MIN 1 day, MAX 365 days.
+    Uses OZ ReentrancyGuardTransient (TSTORE) — a real payoff from verifying
+    Cancun is live. CEI ordering throughout. SafeERC20 everywhere.
+
+  ---- src/SchoolProfile.sol --------------------------------- 7,633 B ---------
+  Public profile pages, stored FULLY ON-CHAIN (explicit product decision).
+
+    setProfile(displayName, logoURI, bannerURI, description, website, location)
+    publishPost(kind, title, body)   kind = General | Admission | FeeNotice
+    setPostVisibility(postId, bool)
+    recentPosts(school, offset, limit, includeHidden)  newest-first, paginated
+
+    Writing requires CURRENT verification, so a revoked school cannot keep
+    publishing. Reading never does, so the UI can show what was claimed next to
+    the fact that the badge is gone.
+
+    *** THE MOST IMPORTANT THING ABOUT THIS CONTRACT ***
+    Everything here is SELF-ASSERTED by the school and verified by NOBODY. The
+    only verified facts in the entire system live in VerifiedEntityRegistry:
+    that this address is controlled by the named institution, and the proofURI.
+    An interface that renders profile text with the same visual authority as the
+    verified badge hands impersonators exactly the credibility this project
+    exists to deny them. PROFILE CONTENT IS MARKETING. THE BADGE IS EVIDENCE.
+    SHOW THEM DIFFERENTLY. This is not a style note; it is the trust model.
+
+    "Hiding" a post does not delete it — this is a public chain and it stays in
+    state and in history. The contract says so rather than offering a delete
+    button that does not delete.
+
+  ---- src/EdGrantLens.sol ----------------------------------- 9,069 B ---------
+  Read-only aggregation. No state, no value, no privileged functions.
+
+    schoolPage(school, postLimit)  -> overview + open requests + posts, ONE call
+    schoolOverview(school)         -> verified facts + self-asserted profile
+                                      + stats, with the two clearly separated
+    schoolStats(school)            -> the fee-status track record
+    openRequestsOf(school) / requestsOf(school, offset, limit)
+    directory(offset, limit)       -> verified schools with track records
+    openRequests(offset, limit)    -> global feed; excludes revoked schools
+
+    SchoolStats fields: totalRequests, openRequests, disbursedRequests,
+    releasableRequests, expiredRequests, totalRequested, totalHeld,
+    totalDisbursed.
+    totalDisbursed is the number a donor should weigh most heavily: money that
+    ACTUALLY REACHED the institution, not money that was merely asked for.
+
+    Exists for two reasons: C1 means pages must be answerable by eth_call in one
+    round trip; and being stateless means it can be redeployed freely as the UI
+    evolves without migrating anything that holds money or grants identity.
+
+  ---- test/ ------------------------------------- 63 tests, all passing -------
+    VerifiedEntityRegistry.t.sol   18  m-of-n, revocation, fees, self-governance
+    EducationFundingVault.t.sol    23  disbursement, refunds, revocation paths
+    SchoolProfile.t.sol            11  gating, posts, hide-not-delete
+    EdGrantLens.t.sol               8  stats lifecycle, directory, one-call page
+    VaultSolvency.invariant.t.sol   3  8192 randomized calls EACH:
+        invariant_vaultIsSolvent          balance >= everything still owed
+        invariant_contributionsReconcile  per-contributor ledger == raised
+        invariant_neverOverfunded         raised <= goal, always
+      The handler deliberately churns verification on/off mid-run, because that
+      is the adversarial case for the revocation-refund path.
+
+  ---- script/ -----------------------------------------------------------------
+    Deploy.s.sol    deploys all four. REFUSES <2 verifiers. REFUSES to guess a
+                    token address on an unknown chain. Both the registry and
+                    token are IMMUTABLE in the vault, so a wrong value at deploy
+                    time is unrecoverable — hence the refusals.
+    SeedDemo.s.sol  stands up a full populated demo (see section 5).
+                    REFUSES to run on chain 677.
+
+  ---- other -------------------------------------------------------------------
+    packages/config/chains.json   network params + deployed addresses by chainId
+    .env.example                  deployment configuration template
+    web/                          EMPTY. Frontend not started.
+
+================================================================================
+5. ACTING AS A DUMMY SCHOOL (testing)
+================================================================================
+Fully supported and scripted. On testnet you hold every key, so you play
+verifier AND school. That is simply how you exercise the flow.
+
+ON MAINNET THIS WOULD BE THE EXACT IMPERSONATION THE PROJECT EXISTS TO PREVENT.
+SeedDemo.s.sol therefore hard-refuses chain 677. Do not remove that guard.
+
+  Generate keys:      cast wallet new     (x4: verifierA, verifierB, school, donor)
+
+  Local dry run (fastest loop; deploys MockUSDT and everything else):
+    anvil &
+    export VERIFIER_A_PK=... VERIFIER_B_PK=... SCHOOL_PK=... DONOR_PK=...
+    forge script script/SeedDemo.s.sol:SeedDemo \
+      --rpc-url http://localhost:8545 --broadcast
+
+  On BOT Chain testnet (contracts must already be deployed):
+    export REGISTRY_ADDRESS=... VAULT_ADDRESS=... PROFILE_ADDRESS=... LENS_ADDRESS=...
+    forge script script/SeedDemo.s.sol:SeedDemo --rpc-url bohr --broadcast
+
+  What it does: school applies -> verifierA and verifierB approve -> school
+  publishes a profile and two posts (one Admission, one FeeNotice) -> creates
+  three fee requests (450, 1200, 300 USDT; one deliberately left with no student
+  context, to prove the mechanism works when a student shares nothing) -> donor
+  partially funds one and fully funds another so release() can be exercised.
+
+  VERIFIED WORKING: run against anvil, release() moved exactly 300 USDT to the
+  school while the vault correctly retained 175 from the unfinished request.
+
+================================================================================
+6. QUICK START
+================================================================================
+  cd contracts
+  forge build
+  forge test                                          # 63 tests
+  forge test --match-contract VaultSolvency -vvv      # the solvency invariants
+
+  Deploy to testnet:
+    cp .env.example .env    # VERIFIERS, VERIFIER_THRESHOLD, VERIFICATION_FEE_WEI
+    forge script script/Deploy.s.sol:Deploy --rpc-url bohr --broadcast \
+      --verify --verifier blockscout
+  Then RECORD THE ADDRESSES in packages/config/chains.json.
+
+================================================================================
+7. THE FRONTEND (not started — this is the next major piece)
+================================================================================
+Stack intended: Next.js + wagmi + viem + TypeScript, in web/.
+Read all data through EdGrantLens. Never scan logs for core flows (see C1).
+
+  PAGES
+    /                      global feed of open requests (lens.openRequests)
+    /schools               directory of verified institutions (lens.directory)
+    /schools/[address]     school profile page (lens.schoolPage — ONE call)
+    /requests/[id]         request detail + contribute (vault.requestSummary)
+    /school/admin          school's own console: profile, posts, new requests
+    /verifier              verifier console: pending applications, confirmations
+
+  THE CONTRIBUTION SCREEN IS THE MOST IMPORTANT SCREEN IN THE PRODUCT.
+  Before the donor signs, it must show, without them reading any documentation:
+    - that the school is verified, and WHAT the verification is based on
+    - the verified badge LINKING DIRECTLY to proofURI, so they can re-check it
+      themselves in one click
+    - THE DISBURSEMENT DESTINATION, EXPLICITLY, on the screen — not in terms
+    - what happens if the goal is not met (individual refund, stated plainly)
+  vault.requestSummary(id) returns every one of these in a single call. It was
+  designed for this screen specifically.
+
+  SCHOOL PROFILE PAGE — the trust separation is a HARD REQUIREMENT:
+    VERIFIED (from registry, render with authority):
+        entityName, proofURI link, verifiedAt, the badge itself
+    SELF-ASSERTED (from SchoolProfile, render as clearly the school's own words):
+        displayName, logo, banner, description, website, location, all posts
+    TRACK RECORD (computed from vault state, factual):
+        stats.totalDisbursed is the headline. "$8,400 delivered across 12
+        students" is the most honest trust signal in the entire product,
+        because it is money that actually arrived, derived from chain state,
+        and it cannot be faked by anyone.
+
+  Two-step USDT flow: approve then contribute (no permit — see C3). Show it as
+  two clear steps rather than hiding it. Permit2 can collapse this later.
+
+================================================================================
+8. OPEN QUESTIONS / NOT YET DONE
+================================================================================
+  [ ] Nothing is deployed anywhere yet.
+  [ ] Frontend not started (web/ is empty).
+  [ ] WSS endpoint on 968 — probe was inconclusive, needs a real ws client.
+  [ ] Paymaster: does a gasless endpoint exist on 968, and can we get a sponsor
+      policy? BOT Chain inherits BSC's EOA paymaster (NOT ERC-4337: zero-gas-
+      price txs bundled by builders, via pm_isSponsorable JSON-RPC; provider
+      named in docs is NodeReal MegaFuel). Sponsoring createRequest and
+      contribute would remove our two biggest adoption cliffs — a registrar who
+      will not buy BOT, and a donor who will not acquire a gas token first — and
+      it introduces NO custody, since the paymaster pays validators, not us.
+      PHASE 2. Do not design v1 around it.
+  [ ] Practical eth_getLogs block-range cap on 677.
+  [ ] Is Safe deployed on BOT Chain? Mostly moot (registry has m-of-n built in)
+      but verifiers may prefer a Safe UI for key management.
+  [ ] No professional audit. Do not put real money on this as it stands.
+  [ ] Legal: student-privacy law, charitable solicitation, and money
+      transmission are all UNEXAMINED. The essay is explicit that this is a
+      testnet proof of concept and makes no claim about any jurisdiction.
+
+================================================================================
+9. DELIBERATE DEVIATIONS FROM A LITERAL READING OF THE ESSAY
+================================================================================
+Flagged honestly so a future maintainer does not think these were oversights.
+Full reasoning for each is in BOTCHAIN_NOTES.txt, entry 002, D-01 through D-09.
+
+  * release() IS A SEPARATE PERMISSIONLESS CALL, not auto-triggered by the
+    goal-completing contribution. Auto-release would charge one unlucky donor
+    for everyone else's disbursement, put an external call inside contribute,
+    and let a school address that reverts on receipt break contributions for
+    everybody. Same outcome, no hostage-taking.
+
+  * THE SCHOOL WRITES THE STUDENT'S OPTIONAL CONTEXT, not the student. The essay
+    says the student "may optionally attach" it. Letting students write it
+    directly would require them to hold a wallet, pay gas, and put an address
+    on-chain — an adoption barrier AND worse for the privacy goals. setContext()
+    is school-only and cannot affect where money goes. REVISIT if student-
+    authored context turns out to matter.
+
+  * REVOCATION MAKES A REQUEST REFUNDABLE IMMEDIATELY, before the deadline. The
+    essay does not say what happens to in-flight requests when a school is
+    revoked; this was derived from "never let the money touch a party who has no
+    business holding it". Verifiers CAN therefore revoke to block a specific
+    disbursement — that is inherent to having revocation at all, and it is
+    acceptable because the ONLY thing revocation can ever do is return money to
+    the people who sent it. It can never redirect funds to anyone. Revocation
+    fails in the safe direction, which is the property we actually need.
+
+  * GOALS ARE DENOMINATED IN USDT, NOT NATIVE BOT. A fee debt is fiat-
+    denominated. If the goal were in BOT and BOT moved 30% before the deadline,
+    the school is underpaid or donors overpay, and the attestation stops
+    describing anything real. Cost accepted: approve + contribute is two txs.
+    The vault takes an immutable IERC20, so it is not hardcoded to USDT.
+
+  * WE BUILT OUR OWN REGISTRY INSTEAD OF USING BOT CHAIN'S ONCHAINID/ERC-3643
+    STACK, which is deployed and available. Their claim topic is KYC_APPROVED
+    for securities investors, their ClaimIssuer signing key belongs to the BOT
+    Chain team, their live compliance module is a China/Singapore country
+    allowlist, and their own docs call the mainnet suite an unaudited
+    "capability demo" that "must not directly carry real assets". Wrong
+    semantics, and it would put our trust model downstream of someone else's key
+    management. We did adopt their good patterns: role separation, first-class
+    revocation, PII off-chain with only a URI pointer on-chain.
+    Their addresses are recorded in BOTCHAIN_NOTES.txt if this is revisited.
+
+================================================================================
+END OF HANDOFF
+================================================================================

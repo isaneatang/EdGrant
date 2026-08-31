@@ -4,6 +4,8 @@ pragma solidity 0.8.28;
 import {Script, console2} from "forge-std/Script.sol";
 import {VerifiedEntityRegistry} from "../src/VerifiedEntityRegistry.sol";
 import {EducationFundingVault} from "../src/EducationFundingVault.sol";
+import {SchoolProfile} from "../src/SchoolProfile.sol";
+import {EdGrantLens} from "../src/EdGrantLens.sol";
 import {IVerifiedEntityRegistry} from "../src/interfaces/IVerifiedEntityRegistry.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -37,12 +39,17 @@ contract Deploy is Script {
         EducationFundingVault vault = new EducationFundingVault(
             IVerifiedEntityRegistry(address(registry)), IERC20(token)
         );
+        SchoolProfile profiles = new SchoolProfile(IVerifiedEntityRegistry(address(registry)));
+        // Stateless read helper. Safe to redeploy later without migrating anything.
+        EdGrantLens lens = new EdGrantLens(registry, vault, profiles);
 
         vm.stopBroadcast();
 
         console2.log("chainId                 ", block.chainid);
         console2.log("VerifiedEntityRegistry  ", address(registry));
         console2.log("EducationFundingVault   ", address(vault));
+        console2.log("SchoolProfile           ", address(profiles));
+        console2.log("EdGrantLens             ", address(lens));
         console2.log("token (USDT)            ", token);
         console2.log("verifiers               ", verifiers.length);
         console2.log("threshold               ", threshold);

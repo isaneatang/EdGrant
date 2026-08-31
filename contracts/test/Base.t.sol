@@ -69,6 +69,7 @@ abstract contract Base is Test {
 
     function _openRequest(uint256 goal, uint64 duration) internal returns (uint256 requestId) {
         vm.prank(school);
+        // forge-lint: disable-next-line(unsafe-typecast)
         requestId = vault.createRequest(keccak256("student-2026-0417"), uint128(goal), uint64(block.timestamp) + duration);
     }
 }
