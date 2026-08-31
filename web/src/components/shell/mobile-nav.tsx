@@ -6,7 +6,6 @@ import { useCallback, useEffect, useId, useRef } from "react";
 import { CONSOLE_NAV, PRIMARY_NAV, isActive } from "./nav-items";
 import { CloseIcon } from "@/components/ui/icons";
 import { ThemeToggle } from "./theme-toggle";
-import { NetworkPicker } from "./network-picker";
 
 /**
  * Mobile navigation drawer.
@@ -149,10 +148,6 @@ export function MobileNav({
         </nav>
 
         <div className="shrink-0 space-y-3 border-t border-rule px-4 py-4">
-          <div>
-            <p className="eyebrow mb-1.5 text-ink-faint">Network</p>
-            <NetworkPicker className="w-full" />
-          </div>
           <div className="flex items-center justify-between">
             <span className="text-[0.8125rem] text-ink-muted">Appearance</span>
             <ThemeToggle />

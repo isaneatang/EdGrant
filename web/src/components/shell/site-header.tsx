@@ -7,7 +7,6 @@ import { MenuIcon } from "@/components/ui/icons";
 import { PRIMARY_NAV, isActive } from "./nav-items";
 import { MobileNav } from "./mobile-nav";
 import { ThemeToggle } from "./theme-toggle";
-import { NetworkPicker } from "./network-picker";
 import { WalletButton } from "./wallet-button";
 
 export function SiteHeader() {
@@ -58,9 +57,6 @@ export function SiteHeader() {
           </nav>
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-            <div className="hidden md:block">
-              <NetworkPicker />
-            </div>
             <div className="hidden sm:block">
               <ThemeToggle />
             </div>
