@@ -12,7 +12,8 @@ import { ChevronDownIcon, ExternalIcon, WalletIcon, SpinnerIcon } from "@/compon
 /**
  * Wallet connection.
  *
- * Injected wallets only — no relay, no WalletConnect project id, no third-party key.
+ * Injected wallets are listed first. WalletConnect appears only when a Reown project
+ * id is configured (see lib/wagmi.ts); with none set this is injected-only as before.
  * EIP-6963 discovery means whatever the browser announces shows up here without us
  * maintaining a list.
  *
@@ -50,8 +51,12 @@ export function WalletButton({ compact = false }: { compact?: boolean }) {
     };
   }, [open]);
 
-  const injected = connectors.filter((c) => c.type === "injected" || c.id === "injected");
-  const options = injected.length > 0 ? injected : connectors;
+  // Injected wallets first, then WalletConnect. Ordered rather than filtered: the old
+  // filter kept only injected connectors, so adding WalletConnect to the wagmi config
+  // would have silently produced no visible change here.
+  const rank = (c: (typeof connectors)[number]) =>
+    c.type === "injected" || c.id === "injected" ? 0 : 1;
+  const options = [...connectors].sort((a, b) => rank(a) - rank(b));
 
   if (!isConnected) {
     const busy = isConnecting || isReconnecting || connectPending;

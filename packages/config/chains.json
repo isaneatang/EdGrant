@@ -9,7 +9,11 @@
     "explorerApiUrl": null,
     "faucetUrl": null,
     "testnet": true,
-    "nativeCurrency": { "name": "Ether", "symbol": "ETH", "decimals": 18 },
+    "nativeCurrency": {
+      "name": "Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
     "contracts": {
       "usdt": null,
       "wbot": null,
@@ -30,17 +34,22 @@
     "explorerApiUrl": "https://scan.bohr.life/api",
     "faucetUrl": "https://faucet.botchain.ai/basic",
     "testnet": true,
-    "nativeCurrency": { "name": "Test BOT", "symbol": "tBOT", "decimals": 18 },
+    "nativeCurrency": {
+      "name": "Test BOT",
+      "symbol": "tBOT",
+      "decimals": 18
+    },
     "contracts": {
       "usdt": "0x75edC9335175Fc0552D51D48439F229c10420fe3",
       "wbot": "0xD5452816194a3784dBa983426cCe7c122F4abd30",
       "multicall3": "0x47FA21f684bBAD707A53a0f9BE59F1422F46C265",
       "permit2": "0xaE85b2bc7578F8Ca9217900a2D548151F96447de",
-      "verifiedEntityRegistry": null,
-      "educationFundingVault": null,
-      "schoolProfile": null,
-      "edGrantLens": null
-    }
+      "verifiedEntityRegistry": "0xE4C850a7b6Fc89b3469edC6706323bB5B44D18be",
+      "educationFundingVault": "0xC35C4553ae2A844B420f7A6Da1B3923137c099Fe",
+      "schoolProfile": "0xeff4B171C3D0244AdF59BdF2b73D5AaE899A785c",
+      "edGrantLens": "0x987f49A1C2e7DE3E2771E59d55a94d5374DDc6ce"
+    },
+    "notes": "Deployed 2026-08-31 from 0xbBdEd8089932ff47e06Ee2A56d6B75530d99126e. Verifier set of 5, threshold 2, verificationFee 0.5 tBOT (immutable). The deploy txs sat in the mempool for ~5.5h while the chain was halted at block 21768657, then mined on resumption. Note the public RPC is load-balanced and nodes can serve inconsistent height/state; retry reads that come back empty rather than concluding a contract is missing."
   },
   "botchainMainnet": {
     "chainId": 677,
@@ -50,7 +59,11 @@
     "explorerApiUrl": "https://scan.botchain.ai/api",
     "faucetUrl": null,
     "testnet": false,
-    "nativeCurrency": { "name": "BOT", "symbol": "BOT", "decimals": 18 },
+    "nativeCurrency": {
+      "name": "BOT",
+      "symbol": "BOT",
+      "decimals": 18
+    },
     "contracts": {
       "usdt": "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C",
       "wbot": "0xD5452816194a3784dBa983426cCe7c122F4abd30",
