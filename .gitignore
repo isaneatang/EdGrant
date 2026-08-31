@@ -1,7 +1,10 @@
 # Foundry
 contracts/out/
 contracts/cache/
-contracts/broadcast/*/dry-run/
+# Broadcast artifacts are local run records containing sender addresses and raw
+# calldata. Useful locally, noise in the repo. Keep real deployment addresses in
+# packages/config/chains.json instead, which is reviewed and intentional.
+contracts/broadcast/
 contracts/.env
 
 # Node

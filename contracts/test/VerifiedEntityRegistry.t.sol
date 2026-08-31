@@ -210,6 +210,42 @@ contract VerifiedEntityRegistryTest is Base {
         new VerifiedEntityRegistry(one, 2, FEE);
     }
 
+    /// @dev The deployer's lack of power is a security property, not an accident, so it is
+    ///      asserted rather than merely documented. `address(this)` deployed the registry in
+    ///      setUp. If someone later adds an owner, these assertions fail loudly.
+    function test_deployerRetainsNoPrivilegeAfterConstruction() public {
+        vm.deal(school, FEE);
+        vm.prank(school);
+        uint256 id = registry.requestVerification{value: FEE}(
+            "State University", IVerifiedEntityRegistry.EntityType.School, PROOF
+        );
+
+        // The deployer is this test contract. It can do none of these.
+        vm.expectRevert(VerifiedEntityRegistry.NotVerifier.selector);
+        registry.approveRequest(id);
+
+        vm.expectRevert(VerifiedEntityRegistry.NotVerifier.selector);
+        registry.rejectRequest(id, "because I deployed it");
+
+        vm.expectRevert(VerifiedEntityRegistry.NotVerifier.selector);
+        registry.addVerifier(address(this));
+
+        vm.expectRevert(VerifiedEntityRegistry.NotVerifier.selector);
+        registry.setThreshold(1);
+
+        assertFalse(registry.isVerifier(address(this)), "deployer is not a verifier");
+    }
+
+    function test_deployerCannotTouchCollectedFees() public {
+        _verify(school, "State University");
+        assertEq(registry.collectedFees(), FEE);
+
+        vm.expectRevert(VerifiedEntityRegistry.NotVerifier.selector);
+        registry.withdrawFees(address(this));
+
+        assertEq(registry.collectedFees(), FEE, "fees are untouched by the deployer");
+    }
+
     // -- enumeration without event logs ------------------------------------
 
     function test_verifiedAccountsArePaginable() public {

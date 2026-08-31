@@ -11,8 +11,9 @@ Repo root:    /home/isane/Documents/DONCODER/EdGrant
 READ IN THIS ORDER
   1. EDUCATION_FUNDING_PROJECT_ESSAY.md  WHY. The philosophy. Non-negotiable.
   2. This file                           WHAT exists, and how to run it.
-  3. BOTCHAIN_NOTES.txt                  Chain research + every decision + why.
-  4. README.md                           Short public-facing overview.
+  3. KEYS.md                             Key custody. Read BEFORE touching keys.
+  4. BOTCHAIN_NOTES.txt                  Chain research + every decision + why.
+  5. README.md                           Short public-facing overview.
 
 If this file and the essay ever disagree, THE ESSAY WINS. It is the spec.
 
@@ -277,6 +278,42 @@ SeedDemo.s.sol therefore hard-refuses chain 677. Do not remove that guard.
   school while the vault correctly retained 175 from the unfinished request.
 
 ================================================================================
+5b. KEYS - READ KEYS.md BEFORE DEPLOYING ANYTHING
+================================================================================
+Nothing is deployed and no real key has been used. Local testing so far used
+Anvil's default accounts, which are PUBLICLY KNOWN, against localhost only.
+
+The one-line version of KEYS.md, because "is this key disposable?" has a
+different answer per role:
+
+  DEPLOYER   Genuinely disposable. Holds NO privilege after construction --
+             neither contract stores msg.sender in its constructor and there is
+             no owner/admin variable anywhere. Asserted by
+             test_deployerRetainsNoPrivilegeAfterConstruction.
+
+  VERIFIER   NOT disposable. These decide which wallets the world recognises as
+             real schools; they ARE the trust model. Separate custody per
+             verifier, hardware wallets on mainnet, threshold above 2.
+             Never place a verifier PRIVATE key in .env -- addresses only.
+             Blast radius if `threshold` of them are compromised: an attacker
+             can verify a fake school and take FUTURE donations, and can grief
+             by revoking real ones. They CANNOT redirect an existing request --
+             request.school is set once at creation and no setter exists
+             anywhere (asserted by test_disbursementDestinationIsImmutable).
+             This containment is why the vault has no administrative surface.
+
+  SCHOOL     Not ours to hold, ever. It is the disbursement destination; if we
+             custody it we have custody of the money and the whole argument
+             collapses. Loss has no recovery path, and adding one would mean
+             adding the administrative override the design forbids.
+
+  DONOR      Ordinary self-custody. Never ask for a seed phrase, for any reason.
+
+SeedDemo.s.sol reads raw keys from env because it needs several signers in one
+run. That is confined to throwaway keys by construction: it hard-refuses chain
+677. DO NOT REMOVE THAT GUARD.
+
+================================================================================
 6. QUICK START
 ================================================================================
   cd contracts
@@ -345,6 +382,7 @@ Read all data through EdGrantLens. Never scan logs for core flows (see C1).
   [ ] Practical eth_getLogs block-range cap on 677.
   [ ] Is Safe deployed on BOT Chain? Mostly moot (registry has m-of-n built in)
       but verifiers may prefer a Safe UI for key management.
+  [ ] Verifier key custody for testnet not yet set up (see KEYS.md).
   [ ] No professional audit. Do not put real money on this as it stands.
   [ ] Legal: student-privacy law, charitable solicitation, and money
       transmission are all UNEXAMINED. The essay is explicit that this is a

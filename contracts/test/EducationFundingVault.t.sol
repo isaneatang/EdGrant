@@ -285,6 +285,25 @@ contract EducationFundingVaultTest is Base {
 
     // -- no privileged surface exists --------------------------------------
 
+    /// @dev The disbursement destination is fixed at creation and reachable by no one.
+    ///      Asserted so that adding a setter later breaks the build rather than the promise.
+    function test_disbursementDestinationIsImmutable() public {
+        uint256 id = _openRequest(GOAL, 30 days);
+        address destination = vault.getRequest(id).school;
+        assertEq(destination, school);
+
+        // Fill and release from an unrelated account; destination is unchanged and unchangeable.
+        vm.prank(alice);
+        vault.contribute(id, GOAL);
+        vm.prank(bob);
+        vault.release(id);
+
+        assertEq(vault.getRequest(id).school, destination, "school field never changes");
+        assertEq(usdt.balanceOf(school), GOAL);
+        assertEq(usdt.balanceOf(alice), 10_000 * USD - GOAL, "contributor is not the recipient");
+        assertEq(usdt.balanceOf(bob), 10_000 * USD, "the releaser receives nothing");
+    }
+
     function test_vaultHasNoAdminFunctions() public view {
         // Documented as an executable assertion: the deployer of this vault holds no role.
         // Every state-changing entry point is either permissionless or gated on being the
