@@ -1,0 +1,38 @@
+{
+  "_comment": "BOT Chain network parameters. Every value verified against the live RPC on 2026-08-31, not copied from docs. Never fall back from mainnet to testnet: BOT Chain's own docs warn about this and the vault's token/registry are immutable.",
+  "botchainTestnet": {
+    "chainId": 968,
+    "name": "BOT Chain Testnet (Bohr)",
+    "rpcUrl": "https://rpc.bohr.life",
+    "explorerUrl": "https://scan.bohr.life",
+    "explorerApiUrl": "https://scan.bohr.life/api",
+    "faucetUrl": "https://faucet.botchain.ai/basic",
+    "nativeCurrency": {"name": "Test BOT", "symbol": "tBOT", "decimals": 18},
+    "contracts": {
+      "usdt": "0x75edC9335175Fc0552D51D48439F229c10420fe3",
+      "wbot": "0xD5452816194a3784dBa983426cCe7c122F4abd30",
+      "multicall3": "0x47FA21f684bBAD707A53a0f9BE59F1422F46C265",
+      "permit2": "0xaE85b2bc7578F8Ca9217900a2D548151F96447de",
+      "verifiedEntityRegistry": null,
+      "educationFundingVault": null
+    }
+  },
+  "botchainMainnet": {
+    "chainId": 677,
+    "name": "BOT Chain Mainnet",
+    "rpcUrl": "https://rpc.botchain.ai",
+    "explorerUrl": "https://scan.botchain.ai",
+    "explorerApiUrl": "https://scan.botchain.ai/api",
+    "faucetUrl": null,
+    "nativeCurrency": {"name": "BOT", "symbol": "BOT", "decimals": 18},
+    "contracts": {
+      "usdt": "0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C",
+      "wbot": "0xD5452816194a3784dBa983426cCe7c122F4abd30",
+      "multicall3": "0x47FA21f684bBAD707A53a0f9BE59F1422F46C265",
+      "permit2": "0x8366170f09a04f715a13549D616a06aED16Db7c3",
+      "verifiedEntityRegistry": null,
+      "educationFundingVault": null
+    },
+    "notes": "eth_getLogs is restricted on this public RPC. The dApp must read state through view functions, never by scanning logs."
+  }
+}

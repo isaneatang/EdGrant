@@ -1,0 +1,527 @@
+================================================================================
+EDGRANT - BOT CHAIN INTEGRATION NOTES
+Running log of research, discoveries, decisions and open questions.
+Append new entries at the bottom under a dated heading. Do not rewrite history.
+================================================================================
+
+--------------------------------------------------------------------------------
+[2026-08-31] ENTRY 001 - INITIAL RESEARCH: WHAT BOT CHAIN ACTUALLY IS
+--------------------------------------------------------------------------------
+
+Source of truth found at https://dev-docs.botchain.ai (Docusaurus, 45 EN pages).
+NOTE: botchain.ai + all subdomains 403 automated fetchers. Must use a browser
+user-agent via curl. Plain WebFetch/scrapers get blocked.
+
+Careful: several unrelated projects share the name. NOT ours:
+  botchain.tech, botchain.dev, botchain.io, botchain.sh
+Ours is botchain.ai / "BOT Chain" (@BOTChain_ai), native token BOT.
+
+WHAT IT IS
+  A BSC (BNB Smart Chain) fork. This is the single most useful fact for us.
+  Evidence, verified live rather than taken from marketing copy:
+    - web3_clientVersion -> "Geth/v1.5.13-666da20c-20260818/linux-amd64/go1.26.6"
+      (v1.5.x is the bsc-geth line, not upstream go-ethereum)
+    - Consensus named "Parlia", PoSA, docs cite BEP-126 and BEP-341 verbatim
+    - BSC system contracts live at 0x...1000-0x...2000 (saw 0x...1002 emit logs)
+  => Everything we know about building on BSC applies. Standard EVM tooling,
+     standard Solidity, no exotic execution environment. Low integration risk.
+
+  Marketing positions it as "AI-native L1 for AI agents / DePIN". That framing
+  is irrelevant to us. There are no AI precompiles or agent-specific opcodes in
+  the docs. We are building a normal EVM dApp on a fast, cheap BSC clone.
+
+--------------------------------------------------------------------------------
+NETWORK PARAMETERS  (all values below independently verified against live RPC,
+not just copied from the docs)
+--------------------------------------------------------------------------------
+
+TESTNET ("Bohr Testnet")            <-- our build target
+  Chain ID      968          (eth_chainId returned 0x3c8  OK)
+  RPC           https://rpc.bohr.life
+  Explorer      https://scan.bohr.life        (Blockscout)
+  Faucet        https://faucet.botchain.ai/basic
+  Native token  tBOT (test BOT, no real value)
+
+MAINNET
+  Chain ID      677          (eth_chainId returned 0x2a5  OK)
+  RPC           https://rpc.botchain.ai
+  Explorer      https://scan.botchain.ai      (Blockscout)
+  Native token  BOT, fixed supply 150,000,000
+
+LIVE MEASUREMENTS (testnet, taken 2026-08-31)
+  Block time      ~0.68-0.75 s     (measured over 20 blocks; Blockscout agrees)
+  Block gas limit 35,000,000       (0x2160ec0)
+  eth_gasPrice    20 gwei          (0x4a817c800)
+  baseFeePerGas   0                -> legacy-style pricing, EIP-1559 base fee is
+                                      flat zero. Use legacy gasPrice txs OR
+                                      type-2 with maxFeePerGas >= 20 gwei.
+  Head block      ~21.74M
+
+FINALITY
+  Fast finality enabled: finalized within ~2 blocks when >=2/3 validators vote.
+  Docs recommend waiting for 2/3*N+1 validator seals for critical value transfer.
+  For us: disbursement is the critical action. Frontend should show
+  "confirming -> finalized" and not declare success on 1 confirmation.
+
+EVM FORK LEVEL
+  Latest block header carries parentBeaconBlockRoot, blobGasUsed, excessBlobGas,
+  withdrawalsRoot -> Cancun-era header format. Docs also claim EIP-4844 blobs.
+  ACTION REQUIRED: do NOT assume Cancun opcodes (TSTORE/TLOAD/MCOPY) work.
+  Header fields being present is not proof the opcodes are enabled. Plan:
+  compile with evmVersion "shanghai" first (PUSH0 is safe), and only move to
+  "cancun" after a throwaway probe contract proves TSTORE works on 968.
+  We do not need transient storage for v1 anyway, so this costs us nothing.
+
+--------------------------------------------------------------------------------
+DISCOVERY 1 - BOT CHAIN ALREADY SHIPS AN ON-CHAIN IDENTITY STACK (ERC-3643)
+--------------------------------------------------------------------------------
+
+This is the biggest finding of the session and it lands directly on top of
+"Contract One: Identity Verification Registry" from the essay.
+
+BOT Chain has deployed and verified a full T-REX / ERC-3643 suite plus the
+ONCHAINID identity infrastructure ("Project RWA"), on BOTH 968 and 677:
+
+  ONCHAINID Gateway  - self-service; anyone calls deployIdentityForWallet(wallet)
+                       to mint themselves an on-chain identity contract
+  IdFactory          - wallet -> identity contract mapping
+  ClaimIssuer        - platform-run signer that issues signed eligibility claims
+  TrustedIssuersReg. - which issuers an asset recognises, per claim topic
+  ClaimTopicsReg.    - which claim topics an asset requires
+  IdentityRegistry   - isVerified(wallet) -> bool, the eligibility oracle
+  ModularCompliance  - pluggable transfer-rule modules
+
+  Testnet (968) shared addresses:
+    ONCHAINID Gateway  0x3B0FE2CD501534cbcbD1F97ec823Da535fc0224f  (has code, OK)
+    IdFactory          0xb4E03AB303f4c42dbced87b65e1d9f5788EAb369
+    ClaimIssuer        0x67EC753196D6Cd1B65a29b6ff9c1bE41E554a5a7
+    TREXGateway        0x82e1Fa8022BA1dcFC05061E0A1CE828C189108A9
+  Mainnet (677) shared addresses:
+    ONCHAINID Gateway  0xa6B4E53128915E0f980DD455De9F70B6Dc61E1ee
+    IdFactory          0x124ED389600870D1a5f86f657896Add3E623ca9e
+    ClaimIssuer        0x3950eB42733b3eF6744E8788C741788CCF6c84b3
+
+THE DECISION THIS FORCES:
+  Do we build our own VerifiedEntityRegistry, or ride on ONCHAINID?
+
+RECOMMENDATION: build our own standalone registry. Reasons:
+
+  a) SEMANTIC MISMATCH. Their stack answers "is this wallet a KYC'd investor
+     permitted to hold security token X". We need to answer "is this wallet a
+     real school, and here is the public proof anyone can re-check". Their live
+     claim topic is literally KYC_APPROVED and their live compliance module is a
+     country allowlist hardcoded to China (156) and Singapore (702). Wrong shape.
+
+  b) TRUST DELEGATION. Their ClaimIssuer signing key is held by the BOT Chain
+     team. Riding on it means our entire trust model is downstream of their key
+     management and their review process. The essay's whole argument is that we
+     own and are transparent about the one centralised component. We cannot be
+     honest about a process we do not run.
+
+  c) THE ESSAY EXPLICITLY WANTS IT REUSABLE AND STANDALONE. It is the project's
+     actual novelty. Outsourcing it outsources the thesis.
+
+  d) Their own docs warn the mainnet suite is a "technical capability demo",
+     the compliance module is UNAUDITED, and it "must not directly carry real
+     assets". Not a foundation to build on.
+
+BUT WE SHOULD STEAL THEIR PATTERNS - they are ERC-3643 patterns and they are good:
+  - Split Owner (governance/upgrade) from Agent (routine ops). Never one key.
+  - Multisig the Owner. Their own docs recommend Safe + delayed execution.
+  - Revocation is first-class, not bolted on. Matches the essay exactly.
+  - Keep plaintext PII off-chain; store only the verifiable conclusion + a URI
+    pointer. This is EXACTLY the essay's privacy stance, already validated by a
+    regulated-asset framework. Strong corroboration that our design is sane.
+  - Separate the "management key" from the "claim signing key".
+
+OPTIONAL BRIDGE (nice-to-have, later): expose a view on our registry that also
+reports whether the school wallet happens to hold a valid ONCHAINID. Additive
+signal, never a dependency. Do not gate anything on it.
+
+--------------------------------------------------------------------------------
+DISCOVERY 2 - USDT IS AVAILABLE ON TESTNET, AND WE SHOULD PROBABLY USE IT
+--------------------------------------------------------------------------------
+
+  USDT testnet (968)   0x75edC9335175Fc0552D51D48439F229c10420fe3
+  USDT mainnet (677)   0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C
+  Decimals: 6  (verified live: symbol() -> "USDT", decimals() -> 6)
+  The faucet dispenses test USDT as well as tBOT.
+
+WHY THIS MATTERS A LOT:
+  School fees are fiat-denominated debts. "Student owes 450" means 450 dollars,
+  not 450 BOT. If a request is denominated in native BOT and BOT moves 30%
+  between creation and deadline, the goal amount becomes meaningless - either
+  the school is underpaid or contributors overpay. The attestation "this school
+  says this student owes this amount" is only coherent in a stable unit.
+
+  => Denominate goals in USDT (6dp). This is a correctness issue, not a
+     preference.
+
+THE COST OF THIS CHOICE (be honest about it):
+  ERC-20 contribution = approve() then contribute() = 2 transactions.
+  Native BOT contribution = 1 transaction, payable, simpler contract, no
+  transfer-return-value edge cases, no reentrancy surface on refund.
+
+  Mitigations available on this chain:
+    - Permit2 IS deployed. Testnet 0xaE85b2bc7578F8Ca9217900a2D548151F96447de,
+      mainnet 0x8366170f09a04f715a13549D616a06aED16Db7c3. Gives sign-once
+      approvals, collapsing the UX back toward one action.
+    - Check whether this USDT implements EIP-2612 permit(). NOT YET VERIFIED.
+      If it does, we can skip Permit2 entirely for the simple path.
+
+  PROPOSED: write the vault token-agnostic (immutable IERC20 set at deploy)
+  rather than hardcoding USDT or hardcoding native. Deploy the testnet instance
+  against test USDT. Keep native-BOT support out of v1 - mixing native and
+  ERC-20 accounting in one vault doubles the refund logic and doubles the audit
+  surface for no real gain.
+
+  CAUTION: real Tether on Ethereum famously does not return a bool from
+  transfer(). Unknown whether this bridged USDT copies that quirk. Use
+  SafeERC20 unconditionally. Assume nothing.
+
+--------------------------------------------------------------------------------
+DISCOVERY 3 - GASLESS DONATIONS ARE POSSIBLE (EOA PAYMASTER)
+--------------------------------------------------------------------------------
+
+BOT Chain inherits BSC's EOA-based paymaster. Note carefully: this is NOT
+ERC-4337. No smart accounts, no EntryPoint, no UserOperations.
+
+How it actually works:
+  1. Wallet asks the paymaster JSON-RPC: pm_isSponsorable({from,to,value,data,gas})
+  2. If sponsorable -> wallet signs the tx with gasPrice = 0
+  3. Wallet submits to the paymaster's eth_sendRawTransaction
+  4. Paymaster bundles the zero-gas user tx with its own fee-paying tx and ships
+     the bundle to MEV builders; the bundle executes atomically
+  Provider named in docs: NodeReal "MegaFuel".
+
+WHY IT MATTERS FOR EDGRANT:
+  Our two hardest adoption problems are both gas problems.
+    - A school registrar will not buy BOT to issue a fee attestation.
+    - A donor who wants to give $20 will not first acquire a gas token.
+  Sponsoring exactly two call paths - createRequest by a verified school, and
+  contribute by anyone - removes the biggest onboarding cliff in the product.
+
+  It also composes beautifully with the trust model: we can sponsor gas WITHOUT
+  ever touching the donated funds. The paymaster pays the validator, not us, and
+  the money still goes wallet -> vault -> school. No custody is introduced.
+
+STATUS: PHASE 2. Do not design v1 around it.
+  UNVERIFIED: whether a paymaster endpoint actually exists on testnet 968, and
+  whether we can get a sponsor policy provisioned. Must confirm before promising
+  gasless anything in the UI.
+  Also note: gas here is trivially cheap (20 gwei on a 0.7s-block chain), so the
+  win is purely "user has zero BOT", not cost. That is still the whole ballgame
+  for a first-time donor.
+
+--------------------------------------------------------------------------------
+DISCOVERY 4 - eth_getLogs IS RESTRICTED ON THE PUBLIC MAINNET RPC
+--------------------------------------------------------------------------------
+
+The docs state plainly: "eth_getLogs is disabled on below Mainnet endpoints."
+
+Probed it live. A single-block query against https://rpc.botchain.ai DID return
+logs, so it is not a hard block - it is almost certainly range-limited or
+rate-limited. Either way, treating the public mainnet RPC as a queryable log
+source is a trap.
+
+This is an ARCHITECTURE constraint, not a footnote. The essay says "the entire
+history of any request is publicly reconstructible" - that promise is delivered
+by event indexing. If we build the frontend to reconstruct state by scanning
+logs from block 0, it will work beautifully on testnet and fall over on mainnet.
+
+MITIGATIONS, in order of preference:
+  1. Make the contracts answer directly. Maintain enumerable on-chain state
+     (request IDs array, per-school request list, per-contributor list) with
+     paginated view functions. Then the UI needs zero log scanning for its core
+     flows. Costs some gas on write; gas is nearly free here. Strongly favoured.
+  2. Run our own indexer. Docs name TheGraph and Covalent.
+  3. WebSocket subscriptions for live updates. wss://rpc.bohr.life probe was
+     inconclusive (got 200 not a 101 upgrade) - UNVERIFIED, needs a real ws client.
+
+  => DESIGN RULE: events are for auditability and indexers. The dApp must remain
+     fully functional using only eth_call against view functions.
+
+--------------------------------------------------------------------------------
+TOOLING / BUILD ENVIRONMENT
+--------------------------------------------------------------------------------
+
+  Solidity: Blockscout verifier advertises up to v0.8.36. BOT Chain's own RWA
+            contracts were compiled with 0.8.17, optimizer on, 200 runs.
+            Proposed for us: 0.8.28, optimizer on, runs 200, evmVersion shanghai
+            (see EVM FORK LEVEL caveat above).
+  Verification: Blockscout with the Rust verifier microservice enabled.
+            Etherscan-compatible /api endpoint also live (confirmed:
+            scan.bohr.life/api?module=block&action=eth_block_number works).
+            So both `forge verify-contract --verifier blockscout` and
+            hardhat-verify's blockscout mode should work.
+  SDKs:     any Ethereum SDK. ethers.js / viem / web3.js all fine.
+  Wallets:  MetaMask works (add network manually or via ChainList). Also a
+            first-party "BO Wallet".
+  Multicall3: 0x47FA21f684bBAD707A53a0f9BE59F1422F46C265 on BOTH 968 and 677.
+            Useful - batch all our per-request view reads into one RPC call.
+
+  FAUCET CONSTRAINT: 10 tBOT per address per 24 hours.
+  This is a real planning constraint. Deploying + configuring a multi-contract
+  system, then running end-to-end tests with several distinct actors (school,
+  moderator/verifier multisig, 3+ contributors) will chew through addresses.
+  Plan: fund one deployer well ahead of time, drip to test actors from it, and
+  script the whole setup so a re-run is one command. Do not discover on demo day
+  that we are rate-limited.
+
+--------------------------------------------------------------------------------
+OPEN QUESTIONS - MUST RESOLVE BEFORE / DURING BUILD
+--------------------------------------------------------------------------------
+  [ ] Does testnet USDT implement EIP-2612 permit()? Decides Permit2 vs native permit.
+  [ ] Does testnet USDT return bool from transfer()? (Use SafeERC20 regardless.)
+  [ ] Are Cancun opcodes live on 968? Probe with a throwaway TSTORE contract.
+  [ ] Is there a working WSS endpoint on 968? Needed for live UI updates.
+  [ ] Does a paymaster endpoint exist on 968, and can we get a sponsor policy?
+  [ ] Practical eth_getLogs block-range cap on 677 (and on 968)?
+  [ ] Is there a Safe / multisig deployment on BOT Chain for the verifier
+      multisig the essay calls for? If not, we write a minimal m-of-n ourselves.
+      DO NOT ship a single-EOA verifier - the essay explicitly rules it out.
+  [ ] Contract size limit - assume EIP-170 24KB, confirm not raised.
+
+--------------------------------------------------------------------------------
+DESIGN POSITIONS CARRIED OVER FROM THE ESSAY (non-negotiable, restated so we do
+not quietly drift away from them while writing code)
+--------------------------------------------------------------------------------
+  - Money NEVER routes through the student. Vault -> verified school wallet only.
+  - Disbursement destination is read from the registry at release time, and is
+    displayed in the UI on the contribution screen, before the donor signs.
+  - No admin override. No pause. No deployer escape hatch on the vault. If we
+    find ourselves adding one "just in case", we have broken the thesis.
+  - Refunds are individually pull-based. No pooled refund. No sweeping of
+    unclaimed funds anywhere, ever.
+  - Verification is proof-of-control, not subjective review. The stored proof
+    URI must be publicly re-checkable by any skeptical donor in one click.
+  - Student PII stays off-chain. On-chain student reference is a school-internal
+    opaque identifier. Pseudonym + statement are strictly optional.
+  - Tone: calm and serious. No countdown-timer urgency theatre. Urgency is the
+    fraudster's tool and we are the anti-fraud product.
+
+--------------------------------------------------------------------------------
+PROPOSED REPO STRUCTURE (draft - not yet created, pending sign-off)
+--------------------------------------------------------------------------------
+  contracts/          Foundry. Fast tests, good fuzzing, native verify support.
+    src/
+      VerifiedEntityRegistry.sol
+      EducationFundingVault.sol
+      interfaces/IVerifiedEntityRegistry.sol
+    test/             unit + fuzz + an end-to-end fork test against 968
+    script/           Deploy.s.sol, Configure.s.sol
+  web/                Next.js + wagmi + viem + TypeScript
+  packages/config/    chain params + deployed addresses, single source of truth,
+                      keyed by chain ID. Never fall back 677 -> 968 (their docs
+                      warn about exactly this and they are right).
+  BOTCHAIN_NOTES.txt  this file
+  EDUCATION_FUNDING_PROJECT_ESSAY.md
+
+  Two contracts, deployed independently, registry first. The vault takes the
+  registry address as an immutable constructor arg.
+
+--------------------------------------------------------------------------------
+SOURCES
+--------------------------------------------------------------------------------
+  https://dev-docs.botchain.ai/docs/Developers/quick-guide/
+  https://dev-docs.botchain.ai/docs/Developers/json-rpc-endpoint/
+  https://dev-docs.botchain.ai/docs/Developers/claim-test-tbot-tokens/
+  https://dev-docs.botchain.ai/docs/Developers/eoa-paymaster/
+  https://dev-docs.botchain.ai/docs/introduction/
+  https://dev-docs.botchain.ai/docs/introduction/fast-finality/
+  https://dev-docs.botchain.ai/docs/RWA/quick-understanding/
+  https://dev-docs.botchain.ai/docs/RWA/core-concepts/
+  https://dev-docs.botchain.ai/docs/RWA/system-architecture/
+  https://dev-docs.botchain.ai/docs/RWA/deployment-addresses/
+  https://dev-docs.botchain.ai/docs/RWA/testnet-practice/
+  https://dev-docs.botchain.ai/docs/Bridge/contract-addresses/
+  https://dev-docs.botchain.ai/docs/DEX/contract-addresses/
+  https://chainlist.org/chain/677
+  Live RPC probes against rpc.bohr.life and rpc.botchain.ai, 2026-08-31
+
+================================================================================
+END ENTRY 001
+================================================================================
+
+
+--------------------------------------------------------------------------------
+[2026-08-31] ENTRY 002 - OPEN QUESTIONS CLOSED, AND THE STRUCTURE BUILT
+--------------------------------------------------------------------------------
+
+RESOLVED FROM ENTRY 001'S OPEN LIST
+  [x] Cancun opcodes on 968 AND 677?  YES - both networks.
+      Probed by eth_call against raw creation bytecode (no key needed, no deploy):
+        PUSH0 0x5f, TLOAD 0x5c, TSTORE 0x5d, MCOPY 0x5e  -> all OK on both chains.
+      => foundry.toml set to evm_version = "cancun", solc 0.8.28.
+      => We can and do use OZ ReentrancyGuardTransient (TSTORE-based). Cheaper
+         than the storage guard and a genuine payoff from having checked.
+      Worth noting the chain's own USDT was compiled for "paris" and their RWA
+      suite for 0.8.17 - the platform is conservative, but the EVM is not the
+      limiting factor. We are not constrained by their choices.
+
+  [x] Does testnet USDT implement EIP-2612 permit()?  NO.
+      DOMAIN_SEPARATOR() and nonces(address) both revert. Same on mainnet USDT.
+      => Sign-once UX must go through Permit2 (deployed, addresses in
+         packages/config/chains.json) or accept the two-step approve+contribute.
+      => v1 ships plain approve + contribute. Permit2 is a frontend-only
+         enhancement later; it needs no contract change.
+
+  [x] Does testnet USDT return bool from transfer()?  YES.
+      Verified source on Blockscout: standard OpenZeppelin ERC20, solc 0.8.22,
+      evmVersion paris, and it IS a proxy (is_fully_verified true). It does NOT
+      have the notorious no-return-value quirk of Tether on Ethereum mainnet.
+      => We still use SafeERC20 everywhere. It costs nothing and the token is
+         behind a proxy, so its implementation can change under us.
+      => MockUSDT in test/mocks mirrors it exactly: 6 decimals, OZ ERC20.
+
+  [ ] STILL OPEN: WSS endpoint on 968 (probe was inconclusive - needs a real ws client)
+  [ ] STILL OPEN: paymaster endpoint + sponsor policy availability on 968
+  [ ] STILL OPEN: practical eth_getLogs block-range cap on 677
+  [ ] STILL OPEN: is a Safe deployment available on BOT Chain?
+      -> PARTIALLY MOOTED. See decision D-04 below: the registry now has m-of-n
+         built in, so we are not blocked on Safe existing. Still worth checking,
+         since verifiers may prefer a Safe UI for key management.
+
+--------------------------------------------------------------------------------
+DECISIONS MADE WHILE BUILDING (each of these is a place the essay did not
+specify an answer, so the reasoning is recorded rather than just the outcome)
+--------------------------------------------------------------------------------
+
+D-01  DENOMINATE IN USDT, NOT NATIVE BOT.  [user-confirmed]
+      A fee debt is fiat-denominated. "Owes 450" means 450 dollars. If the goal
+      were in BOT and BOT moved 30% before the deadline, the school is underpaid
+      or the donors overpay, and the attestation stops describing anything real.
+      Cost accepted: approve + contribute is two transactions.
+      Vault takes an immutable IERC20 at construction rather than hardcoding
+      USDT, so the same code can be deployed against a different stable unit.
+      Deliberately NOT supporting native BOT in the same vault - mixing native
+      and ERC-20 accounting doubles the refund logic and the audit surface.
+
+D-02  BUILD OUR OWN REGISTRY RATHER THAN RIDING ONCHAINID.
+      Reasoning in full at ENTRY 001 / DISCOVERY 1. Short version: their claim
+      topic is KYC_APPROVED for securities investors, their ClaimIssuer key is
+      the BOT Chain team's, their live compliance module is a China/Singapore
+      country allowlist, and their own docs call the mainnet suite an unaudited
+      capability demo. Wrong semantics, and it would put our trust model
+      downstream of someone else's key management.
+      We did adopt their good patterns: role separation, first-class revocation,
+      PII off-chain with only a URI pointer on-chain.
+
+D-03  REVOCATION MAKES A REQUEST REFUNDABLE IMMEDIATELY.
+      The essay does not say what happens to in-flight requests when a school is
+      revoked. Derived it from the stated philosophy - "never let the money touch
+      a party who has no business holding it":
+        - release() re-checks isVerified() at the moment of transfer, not just at
+          creation. A revoked school cannot be paid even if fully funded.
+        - refund() becomes available the instant verification is lost, without
+          waiting for the deadline.
+        - contribute() is blocked for a revoked school, so nobody adds to a dead
+          request.
+      Griefing note, stated honestly: verifiers CAN revoke to block a specific
+      disbursement. That is inherent to having revocation at all. It is
+      acceptable because the only thing revocation can ever do is return money to
+      the people who sent it. It can never redirect funds to anyone. Revocation
+      fails in the safe direction, which is the property we actually need.
+
+D-04  THE REGISTRY IS SELF-GOVERNING. THERE IS NO OWNER.
+      The essay demands a multisig "so that no individual can unilaterally grant
+      or revoke institutional identity". An `owner` who can swap the verifier set
+      would be a backdoor around exactly that - the owner could install itself as
+      sole verifier. So: no owner exists. Verifier-set changes require the same
+      m-of-n as approvals.
+      Implemented as a generic operation-hash confirmation pattern:
+        approve  -> keccak(APPROVE, requestId)      unique via request status
+        reject   -> keccak(REJECT, requestId)
+        revoke   -> keccak(REVOKE, account, entityEpoch[account])
+        governance -> keccak(op, args, governanceNonce)
+      entityEpoch exists so an approve->revoke->approve->revoke cycle cannot
+      replay a stale revoke hash. Tested: test_reapplyAfterRevocationSucceeds.
+      governanceNonce means only ONE governance op can be in flight at a time.
+      Accepted limitation; verifiers coordinate off-chain like any multisig.
+      removeVerifier() takes newThreshold in the SAME call so the set can never
+      be left with threshold > verifierCount, which would deadlock the registry
+      permanently. Tested: test_removeVerifierCannotDeadlockThreshold.
+
+D-05  release() IS A SEPARATE PERMISSIONLESS CALL, NOT AUTO-TRIGGERED.
+      The essay says "when the goal is met, the contract sends the funds". Doing
+      that inside the goal-completing contribute() would (a) charge one unlucky
+      donor for everyone else's disbursement, (b) put an external call inside
+      contribute, and (c) let a school address that reverts on receipt break
+      contributions for everybody. Instead: emit GoalReached, and let anyone
+      call release(). Same outcome, no hostage-taking. Documented in the code.
+
+D-06  OVERFUNDING REVERTS RATHER THAN BEING TRIMMED.
+      Silently taking less than a donor asked for is surprising and erodes the
+      legibility the essay demands. contribute() reverts with
+      ExceedsRemaining(remaining) and the UI offers "fill the remainder".
+
+D-07  THE SCHOOL WRITES THE STUDENT'S OPTIONAL CONTEXT, NOT THE STUDENT.
+      The essay says the student "may optionally attach" a pseudonym and
+      statement. Letting the student write it directly would require the student
+      to hold a wallet and pay gas, which is a real adoption barrier and forces
+      a student address on-chain - worse for the privacy goals. So the school
+      submits context it collected off-chain, via setContext(), guarded to the
+      school and unable to affect where money goes. Students never need a wallet.
+      Flag: this is a deviation from a literal reading of the essay. Revisit if
+      student-authored context turns out to matter.
+
+D-08  ON-CHAIN ENUMERATION IS MANDATORY, NOT AN OPTIMISATION.
+      Direct consequence of ENTRY 001 / DISCOVERY 4 (eth_getLogs restricted on
+      the public mainnet RPC). Both contracts keep enumerable arrays with
+      paginated getters. requestSummary() returns everything a contribution
+      screen needs in ONE call - including disbursementDestination and the
+      school's proofURI, so the UI can show the donor where the money goes and
+      link the verified badge to re-checkable evidence before they sign.
+      Gas is ~free here, so the write-side cost is irrelevant.
+
+D-09  APPLICATION FEE IS IN NATIVE BOT, NOT USDT.
+      Keeps the registry free of any ERC-20 dependency, which matters because the
+      essay wants it reusable by other projects. Also avoids an approve step on
+      the very first interaction a school ever has with us.
+      Fee is refundable in full via withdrawRequest() ONLY while zero verifiers
+      have confirmed. Once review has begun the fee is consumed either way,
+      including on rejection - otherwise impersonators get free retries and the
+      deterrent evaporates. Tested both paths.
+
+--------------------------------------------------------------------------------
+WHAT WAS ACTUALLY BUILT
+--------------------------------------------------------------------------------
+  contracts/            Foundry, solc 0.8.28, evm cancun, optimizer 200 runs
+    src/VerifiedEntityRegistry.sol      10,242 B runtime
+    src/EducationFundingVault.sol        8,900 B runtime
+    src/interfaces/IVerifiedEntityRegistry.sol
+    test/  44 tests, all passing:
+      VerifiedEntityRegistry.t.sol   18  m-of-n, revocation, fees, self-governance
+      EducationFundingVault.t.sol    23  disbursement, refunds, revocation paths
+      VaultSolvency.invariant.t.sol   3  8192 randomized calls each:
+          invariant_vaultIsSolvent          balance >= everything still owed
+          invariant_contributionsReconcile  per-contributor ledger == raised
+          invariant_neverOverfunded         raised <= goal, always
+        The handler deliberately churns verification on and off mid-run, because
+        that is the adversarial case for the D-03 refund path.
+    script/Deploy.s.sol   refuses <2 verifiers; refuses to guess a token address
+  packages/config/chains.json   network params + deployed addresses by chain ID
+  README.md
+  web/                  empty, next up
+
+  EIP-170 limit is 24,576 B. Both contracts have >14 KB of headroom, so there is
+  room to grow without needing to split or proxy anything.
+
+--------------------------------------------------------------------------------
+NEXT
+--------------------------------------------------------------------------------
+  1. Fund a deployer on 968 from the faucet (remember: 10 tBOT / 24h cap - start
+     this EARLY, it gates everything downstream).
+  2. Deploy registry + vault to 968, verify on Blockscout, record the addresses
+     in packages/config/chains.json.
+  3. End-to-end rehearsal on the live testnet with distinct EOAs: 3 verifiers,
+     1 school, 3 contributors. Script it so a re-run is one command.
+  4. Frontend. Priority order follows the essay's UX section:
+     verified badge -> links to proofURI; disbursement destination shown on the
+     contribution screen before signing; what-happens-if-it-fails stated plainly.
+     Calm and serious. No countdown urgency theatre.
+  5. Only then look at Permit2 and the paymaster.
+
+================================================================================
+END ENTRY 002
+================================================================================
